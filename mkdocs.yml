@@ -1,0 +1,193 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: TIMEx
+site_description: A Swiss-army knife for timeouts in Ruby.
+site_author: drexed
+site_url: https://drexed.github.io/timex/
+repo_name: drexed/timex
+repo_url: https://github.com/drexed/timex
+edit_uri: edit/main/docs/
+copyright: Drexed, Inc. © 2026 - EoT
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/favicon.svg
+  favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: DM Sans
+    code: DM Mono
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - navigation.footer
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.expand
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+
+plugins:
+  - search
+  - rss:
+      match_path: blog/posts/.*
+      date_from_meta:
+        as_creation: date
+      categories:
+        - categories
+  - blog:
+      blog_dir: blog
+      blog_toc: true
+      post_date_format: long
+      post_url_format: "{slug}"
+      archive_date_format: MMMM yyyy
+      draft_if_future_date: true
+      categories_allowed:
+        - Tutorials
+        - Updates
+  - llmstxt:
+      markdown_description: >-
+        TIMEx is a Ruby library for safe, composable timeouts: a Deadline value object,
+        cooperative and forceful strategies, composers, propagation, and telemetry—without
+        stdlib Timeout's async-exception hazards.
+      full_output: llms-full.txt
+      sections:
+        "Getting Started":
+          - index.md: TIMEx overview, installation, and landing content
+          - getting_started.md: TIMEx.deadline, check!, requirements, quick tour
+          - comparison.md: TIMEx vs stdlib Timeout safety trade-offs
+          - configuration.md: TIMEx.configure process-wide defaults
+          - migrating_from_stdlib_timeout.md: Leaving Timeout.timeout behind
+        Basics:
+          - basics/deadline.md: Deadline monotonic wall clock min shield headers
+          - basics/clock.md: Real and virtual clocks for tests
+          - basics/facade.md: TIMEx.deadline TIMEx.call strategy on_timeout
+          - basics/cancellation_token.md: Cancellation token integration
+        Strategies:
+          - strategies/cooperative.md: Cooperative checkpoints check!
+          - strategies/io.md: Per-syscall IO timeouts
+          - strategies/wakeup.md: Wakeup strategy
+          - strategies/closeable.md: Closeable resource strategy
+          - strategies/subprocess.md: Isolated subprocess timeouts
+          - strategies/ractor.md: Ractor-based abandonment
+          - strategies/unsafe.md: Thread.raise escape hatch
+        Composers:
+          - composers/two_phase.md: Soft then hard two-phase timeouts
+          - composers/hedged.md: Hedged idempotent RPC tail latency
+          - composers/adaptive.md: Adaptive timeout from history
+        Propagation:
+          - propagation/http_header.md: X-TIMEx-Deadline HTTP propagation
+          - propagation/rack.md: Rack middleware for request budgets
+        Guides:
+          - internals.md: Registry strategies wiring
+          - tips_and_tricks.md: Patterns and gotchas
+          - testing.md: Virtual clock and TIMEx.reset_configuration!
+          - telemetry.md: Null Logger ASN OpenTelemetry adapters
+          - auto_check.md: TracePoint auto check! for legacy code
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - Getting Started: getting_started.md
+    - Configuration: configuration.md
+    - Internals: internals.md
+    - Telemetry: telemetry.md
+    - Auto-Check: auto_check.md
+    - Basics:
+      - Deadline: basics/deadline.md
+      - Clock: basics/clock.md
+      - Facade: basics/facade.md
+      - Cancellation Token: basics/cancellation_token.md
+    - Strategies:
+      - Cooperative: strategies/cooperative.md
+      - IO: strategies/io.md
+      - Wakeup: strategies/wakeup.md
+      - Closeable: strategies/closeable.md
+      - Subprocess: strategies/subprocess.md
+      - Ractor: strategies/ractor.md
+      - Unsafe: strategies/unsafe.md
+    - Composers:
+      - TwoPhase: composers/two_phase.md
+      - Hedged: composers/hedged.md
+      - Adaptive: composers/adaptive.md
+    - Propagation:
+      - HTTP Header: propagation/http_header.md
+      - Rack Middleware: propagation/rack.md
+    - More:
+      - Testing: testing.md
+      - Tips and Tricks: tips_and_tricks.md
+      - Comparison: comparison.md
+      - Migration: migrating_from_stdlib_timeout.md
+    - References:
+      - API Documentation: https://drexed.github.io/timex/api/index.html
+      - llms.txt: https://drexed.github.io/timex/llms.txt
+      - llms-full.txt: https://drexed.github.io/timex/llms-full.txt
+      - AI Skills: https://github.com/drexed/timex/blob/main/skills
+  - Blog: blog/index.md
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drexed/timex
+    - icon: fontawesome/solid/rss
+      link: https://drexed.github.io/timex/feed_rss_created.xml
+
+extra_css:
+  - stylesheets/extra.css

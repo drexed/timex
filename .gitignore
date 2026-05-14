@@ -1,0 +1,24 @@
+/.bundle/
+/.cache/
+/.vscode/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+
+# benchmark artifacts
+/benchmark/vendor/
+/benchmark/.bundle/
+/benchmark/Gemfile.lock
+
+# rspec failure tracking
+.rspec_status
+
+# mkdocs
+/site/
+
+# generated API docs
+/docs/api/

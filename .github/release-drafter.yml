@@ -1,0 +1,30 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+categories:
+  - title: "Features"
+    labels: ["feat", "feature", "enhancement"]
+  - title: "Strategies & Composers"
+    labels: ["strategy", "composer"]
+  - title: "Fixes"
+    labels: ["fix", "bug"]
+  - title: "Docs"
+    labels: ["docs", "documentation"]
+  - title: "Performance"
+    labels: ["perf", "performance"]
+  - title: "Maintenance"
+    labels: ["chore", "refactor", "ci"]
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+version-resolver:
+  major:
+    labels: ["major", "breaking"]
+  minor:
+    labels: ["minor", "feature", "feat"]
+  patch:
+    labels: ["patch", "fix", "bug", "chore"]
+  default: patch
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/drexed/timex/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

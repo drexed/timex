@@ -1,0 +1,44 @@
+name: Docs
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_COLOR: 1
+      CLICOLOR_FORCE: 1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Configure Git Credentials
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Set cache ID
+        run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: ~/.cache
+          restore-keys: |
+            mkdocs-material-
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - name: Install Python dependencies
+        run: pip install "mkdocs>=1.6,<2" mkdocs-material mkdocs-llmstxt
+          mkdocs-rss-plugin pymdown-extensions
+      - name: Generate API documentation
+        run: bundle exec rake yard
+      - name: Deploy documentation
+        run: mkdocs gh-deploy --force

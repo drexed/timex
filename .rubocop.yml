@@ -1,0 +1,113 @@
+plugins:
+  - rubocop-performance
+  - rubocop-rake
+  - rubocop-rspec
+AllCops:
+  NewCops: enable
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  TargetRubyVersion: 3.3
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+  Exclude:
+    - 'benchmark/**/*'
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: true
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: empty_lines_except_namespace
+Layout/EmptyLinesAroundModuleBody:
+  EnforcedStyle: empty_lines_except_namespace
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+Layout/LineLength:
+  Enabled: false
+Lint/InheritException:
+  Exclude:
+    - 'lib/timex/expired.rb'
+Lint/MissingSuper:
+  Exclude:
+    - 'spec/**/**/*'
+Lint/ShadowedException:
+  Enabled: false
+Lint/UnusedMethodArgument:
+  Exclude:
+    - 'lib/timex/strategies/**/*'
+    - 'lib/timex/composers/**/*'
+    - 'lib/timex/telemetry/**/*'
+Metrics/AbcSize:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Metrics/ModuleLength:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
+Naming/PredicateMethod:
+  Mode: aggressive
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/integrations/**/*'
+    - 'spec/timex/properties_spec.rb'
+RSpec/ExampleLength:
+  Enabled: false
+RSpec/IndexedLet:
+  Enabled: false
+RSpec/MessageSpies:
+  EnforcedStyle: receive
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+RSpec/NestedGroups:
+  Enabled: false
+RSpec/SpecFilePathFormat:
+  CustomTransform:
+    TIMEx: timex
+  Exclude:
+    - spec/generators/**/*
+RSpec/SubjectStub:
+  Enabled: false
+RSpec/StubbedMock:
+  Enabled: false
+RSpec/VerifiedDoubleReference:
+  Enabled: false
+Style/ArgumentsForwarding:
+  UseAnonymousForwarding: false
+Style/CaseEquality:
+  Enabled: false
+Style/DocumentDynamicEvalDefinition:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Style/DoubleNegation:
+  Enabled: false
+Style/EmptyClassDefinition:
+  Enabled: false
+Style/FormatStringToken:
+  EnforcedStyle: template
+  Exclude:
+    - 'benchmark/**/*'
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always_true
+  SafeAutoCorrect: true
+Style/HashSyntax:
+  EnforcedShorthandSyntax: always
+Style/ModuleFunction:
+  EnforcedStyle: extend_self
+Style/OptionalBooleanParameter:
+  Enabled: false
+Style/StringConcatenation:
+  Enabled: false
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

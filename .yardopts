@@ -1,0 +1,10 @@
+--no-private
+--tag
+rbs
+--output-dir
+docs/api
+--exclude
+lib/generators/.*\.rb
+--exclude
+lib/timex/railtie.rb
+lib/**/*.rb

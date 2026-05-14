@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Greps for `rescue Exception` / bare `rescue` inside a TIMEx.deadline block.
+# Exits non-zero on any finding so it can gate CI.
+
+require "find"
+
+paths = ARGV.empty? ? ["."] : ARGV
+findings = []
+
+Find.find(*paths) do |path|
+  next unless path.end_with?(".rb")
+
+  in_block = false
+  depth = 0
+  File.foreach(path).with_index(1) do |line, lineno|
+    if line.match?(/TIMEx\.(call|deadline)\b.*\bdo\b|TIMEx\.(call|deadline)\b.*\{/)
+      in_block = true
+      depth = 0
+    end
+    if in_block
+      depth += line.count("{") + line.scan(/\bdo\b/).size
+      depth -= line.count("}") + line.scan(/\bend\b/).size
+      findings << "#{path}:#{lineno}: #{line.strip}" if line.match?(/^\s*rescue\b\s*(=>|$)/) || line.match?(/^\s*rescue\s+Exception\b/)
+      in_block = false if depth <= 0
+    end
+  end
+end
+
+if findings.empty?
+  puts "timex-lint: clean"
+  exit 0
+else
+  warn "timex-lint: found #{findings.size} suspicious rescue clauses inside TIMEx.deadline blocks:"
+  findings.each { |f| warn "  #{f}" }
+  warn "Cooperative cancellation can be defeated by these. Consider TIMEx::Composers::TwoPhase."
+  exit 1
+end
