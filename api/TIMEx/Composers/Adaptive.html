@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: TIMEx::Composers::Adaptive
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "TIMEx::Composers::Adaptive";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (A)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Composers.html" title="TIMEx::Composers (module)">Composers</a></span></span>
+     &raquo; 
+    <span class="title">Adaptive</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: TIMEx::Composers::Adaptive
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName"><span class='object_link'><a href="Base.html" title="TIMEx::Composers::Base (class)">Base</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next"><span class='object_link'><a href="Base.html" title="TIMEx::Composers::Base (class)">Base</a></span></li>
+          
+            <li class="next">TIMEx::Composers::Adaptive</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/timex/composers/adaptive.rb
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Chooses a per-call child deadline from a latency estimator, then delegates
+to <code>child</code> with <code>on_timeout: :raise</code> so timeouts feed back into the
+estimator uniformly before applying the caller's <code>on_timeout:</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="Base.html" title="TIMEx::Composers::Base (class)">Base</a></span></li>
+    
+  </ul>
+
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Adaptive/InMemoryStore.html" title="TIMEx::Composers::Adaptive::InMemoryStore (class)">InMemoryStore</a></span>
+    
+  
+</p>
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#call-instance_method" title="#call (instance method)">#<strong>call</strong>(deadline: nil, on_timeout: :raise, **opts) {|deadline| ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Child return or timeout handler result.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(child:, history: InMemoryStore.new, multiplier: 1.5, floor_ms: 25, ceiling_ms: 30_000)  &#x21d2; Adaptive </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of Adaptive.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(child:, history: InMemoryStore.new, multiplier: 1.5, floor_ms: 25, ceiling_ms: 30_000)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Composers::Adaptive (class)">Adaptive</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of Adaptive.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>child</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt><span class='object_link'><a href="../Strategies/Base.html" title="TIMEx::Strategies::Base (class)">Strategies::Base</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>inner strategy</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>history</span>
+      
+      
+        <span class='type'>(<tt>#estimate_ms</tt>, <tt>#record</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>InMemoryStore.new</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>latency store (defaults to <span class='object_link'><a href="Adaptive/InMemoryStore.html" title="TIMEx::Composers::Adaptive::InMemoryStore (class)">InMemoryStore</a></span>)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>multiplier</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>1.5</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>scales the estimate into a budget</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>floor_ms</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>25</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>minimum adaptive budget</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>ceiling_ms</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>30_000</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>maximum adaptive budget</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when parameters are invalid</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/composers/adaptive.rb', line 150</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>child:</span><span class='comma'>,</span> <span class='label'>history:</span> <span class='const'><span class='object_link'><a href="Adaptive/InMemoryStore.html" title="TIMEx::Composers::Adaptive::InMemoryStore (class)">InMemoryStore</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Adaptive/InMemoryStore.html#initialize-instance_method" title="TIMEx::Composers::Adaptive::InMemoryStore#initialize (method)">new</a></span></span><span class='comma'>,</span> <span class='label'>multiplier:</span> <span class='float'>1.5</span><span class='comma'>,</span> <span class='label'>floor_ms:</span> <span class='int'>25</span><span class='comma'>,</span> <span class='label'>ceiling_ms:</span> <span class='int'>30_000</span><span class='rparen'>)</span>
+  <span class='kw'>super</span><span class='lparen'>(</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>multiplier must be &gt; 0</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_multiplier'>multiplier</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_multiplier'>multiplier</span><span class='period'>.</span><span class='id identifier rubyid_positive?'>positive?</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>floor_ms must be a positive Numeric</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_floor_ms'>floor_ms</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_floor_ms'>floor_ms</span><span class='period'>.</span><span class='id identifier rubyid_positive?'>positive?</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ceiling_ms must be &gt;= floor_ms</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_ceiling_ms'>ceiling_ms</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_ceiling_ms'>ceiling_ms</span> <span class='op'>&gt;=</span> <span class='id identifier rubyid_floor_ms'>floor_ms</span>
+
+  <span class='ivar'>@child</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Registry.html" title="TIMEx::Registry (module)">Registry</a></span></span><span class='period'>.</span><span class='id identifier rubyid_resolve'><span class='object_link'><a href="../Registry.html#resolve-instance_method" title="TIMEx::Registry#resolve (method)">resolve</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_child'>child</span><span class='rparen'>)</span>
+  <span class='ivar'>@history</span> <span class='op'>=</span> <span class='id identifier rubyid_history'>history</span>
+  <span class='ivar'>@multiplier</span> <span class='op'>=</span> <span class='id identifier rubyid_multiplier'>multiplier</span>
+  <span class='ivar'>@floor_ms</span> <span class='op'>=</span> <span class='id identifier rubyid_floor_ms'>floor_ms</span>
+  <span class='ivar'>@ceiling_ms</span> <span class='op'>=</span> <span class='id identifier rubyid_ceiling_ms'>ceiling_ms</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="call-instance_method">
+  
+    #<strong>call</strong>(deadline: nil, on_timeout: :raise, **opts) {|deadline| ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns child return or timeout handler result.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>, <tt>Object</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>optional outer cap (+min+ with adaptive budget)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>on_timeout</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>Proc</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>:raise</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>applied after child raises <span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>opts</span>
+      
+      
+        <span class='type'>(<tt>Hash{Symbol =&gt; Object}</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>forwarded to <code>child</code></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>child return or timeout handler result</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>StandardError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>non-timeout errors from the child propagate after recording latency</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/composers/adaptive.rb', line 169</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='label'>deadline:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>on_timeout:</span> <span class='symbol'>:raise</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_estimate'>estimate</span>  <span class='op'>=</span> <span class='ivar'>@history</span><span class='period'>.</span><span class='id identifier rubyid_estimate_ms'>estimate_ms</span>
+  <span class='id identifier rubyid_budget_ms'>budget_ms</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='id identifier rubyid_estimate'>estimate</span>
+                <span class='lparen'>(</span><span class='id identifier rubyid_estimate'>estimate</span> <span class='op'>*</span> <span class='ivar'>@multiplier</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='ivar'>@floor_ms</span><span class='comma'>,</span> <span class='ivar'>@ceiling_ms</span><span class='rparen'>)</span>
+              <span class='kw'>else</span>
+                <span class='ivar'>@ceiling_ms</span>
+              <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_adaptive_deadline'>adaptive_deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_in'><span class='object_link'><a href="../Deadline.html#in-class_method" title="TIMEx::Deadline.in (method)">in</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_budget_ms'>budget_ms</span> <span class='op'>/</span> <span class='float'>1000.0</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_effective'>effective</span>         <span class='op'>=</span> <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>?</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="../Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_min'><span class='object_link'><a href="../Deadline.html#min-instance_method" title="TIMEx::Deadline#min (method)">min</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_adaptive_deadline'>adaptive_deadline</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='id identifier rubyid_adaptive_deadline'>adaptive_deadline</span>
+
+  <span class='const'><span class='object_link'><a href="../../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Telemetry.html" title="TIMEx::Telemetry (module)">Telemetry</a></span></span><span class='period'>.</span><span class='id identifier rubyid_instrument'><span class='object_link'><a href="../Telemetry.html#instrument-instance_method" title="TIMEx::Telemetry#instrument (method)">instrument</a></span></span><span class='lparen'>(</span>
+    <span class='label'>event:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>composer.adaptive</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+    <span class='label'>estimate_ms:</span> <span class='id identifier rubyid_estimate'>estimate</span><span class='op'>&amp;.</span><span class='id identifier rubyid_round'>round</span><span class='comma'>,</span>
+    <span class='label'>budget_ms:</span> <span class='id identifier rubyid_budget_ms'>budget_ms</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span><span class='comma'>,</span>
+    <span class='label'>deadline_ms:</span> <span class='id identifier rubyid_effective'>effective</span><span class='period'>.</span><span class='id identifier rubyid_infinite?'>infinite?</span> <span class='op'>?</span> <span class='kw'>nil</span> <span class='op'>:</span> <span class='id identifier rubyid_effective'>effective</span><span class='period'>.</span><span class='id identifier rubyid_remaining_ms'>remaining_ms</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span>
+  <span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_payload'>payload</span><span class='op'>|</span>
+    <span class='id identifier rubyid_started'>started</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="../Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span>
+    <span class='kw'>begin</span>
+      <span class='comment'># Force the child to surface `Expired` so we can record a uniform
+</span>      <span class='comment'># timeout penalty regardless of the caller&#39;s `on_timeout:` (a
+</span>      <span class='comment'># `:return_nil`/`:result` path would otherwise be recorded as a
+</span>      <span class='comment'># success at ~budget_ms and never penalize the estimator). We
+</span>      <span class='comment'># re-apply the caller&#39;s `on_timeout:` ourselves.
+</span>      <span class='id identifier rubyid_value'>value</span> <span class='op'>=</span> <span class='ivar'>@child</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='label'>deadline:</span> <span class='id identifier rubyid_effective'>effective</span><span class='comma'>,</span> <span class='label'>on_timeout:</span> <span class='symbol'>:raise</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+      <span class='ivar'>@history</span><span class='period'>.</span><span class='id identifier rubyid_record'>record</span><span class='lparen'>(</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="../Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span> <span class='op'>-</span> <span class='id identifier rubyid_started'>started</span><span class='rparen'>)</span> <span class='op'>/</span> <span class='float'>1_000_000.0</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_value'>value</span>
+    <span class='kw'>rescue</span> <span class='const'><span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+      <span class='id identifier rubyid_payload'>payload</span><span class='lbracket'>[</span><span class='symbol'>:outcome</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='symbol'>:timeout</span>
+      <span class='comment'># Record the *budget* as the penalty (capped at ceiling), not the
+</span>      <span class='comment'># multiplied estimate. Previously we recorded the parent-clamped
+</span>      <span class='comment'># budget_ms back into history, which on a tight parent deadline
+</span>      <span class='comment'># could differ from what we actually waited and bias the estimator.
+</span>      <span class='comment'># Use `effective.remaining_ms` (post-clamp elapsed) if available so
+</span>      <span class='comment'># the estimator tracks real wait time, falling back to budget_ms.
+</span>      <span class='id identifier rubyid_elapsed_ms'>elapsed_ms</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="../Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span> <span class='op'>-</span> <span class='id identifier rubyid_started'>started</span><span class='rparen'>)</span> <span class='op'>/</span> <span class='float'>1_000_000.0</span>
+      <span class='ivar'>@history</span><span class='period'>.</span><span class='id identifier rubyid_record'>record</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='id identifier rubyid_elapsed_ms'>elapsed_ms</span><span class='comma'>,</span> <span class='id identifier rubyid_budget_ms'>budget_ms</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_max'>max</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='ivar'>@floor_ms</span><span class='comma'>,</span> <span class='ivar'>@ceiling_ms</span><span class='rparen'>)</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_handle_timeout'>handle_timeout</span><span class='lparen'>(</span><span class='id identifier rubyid_on_timeout'>on_timeout</span><span class='comma'>,</span> <span class='id identifier rubyid_e'>e</span><span class='rparen'>)</span>
+    <span class='kw'>rescue</span> <span class='const'>StandardError</span>
+      <span class='comment'># User-cancelled or otherwise-failed attempts should still feed
+</span>      <span class='comment'># the estimator: a child that consistently raises after ~budget_ms
+</span>      <span class='comment'># tells us latency is rising, even if the caller is the one
+</span>      <span class='comment'># throwing the exception. Cap the recorded sample at the ceiling
+</span>      <span class='comment'># so a slow upstream-of-failure doesn&#39;t pin the estimator high.
+</span>      <span class='id identifier rubyid_elapsed_ms'>elapsed_ms</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="../Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span> <span class='op'>-</span> <span class='id identifier rubyid_started'>started</span><span class='rparen'>)</span> <span class='op'>/</span> <span class='float'>1_000_000.0</span>
+      <span class='ivar'>@history</span><span class='period'>.</span><span class='id identifier rubyid_record'>record</span><span class='lparen'>(</span><span class='id identifier rubyid_elapsed_ms'>elapsed_ms</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='ivar'>@floor_ms</span><span class='comma'>,</span> <span class='ivar'>@ceiling_ms</span><span class='rparen'>)</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_raise'>raise</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu May 14 21:51:13 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.4.9).
+</div>
+
+    </div>
+  </body>
+</html>

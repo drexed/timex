@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: TIMEx
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "TIMEx";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index (T)</a> &raquo;
+    
+    
+    <span class="title">TIMEx</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: TIMEx
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  <dl>
+      <dt>Extended by:</dt>
+      <dd><span class='object_link'><a href="" title="TIMEx (module)">TIMEx</a></span></dd>
+  </dl>
+  
+  
+  
+  
+
+  
+  <dl>
+    <dt>Included in:</dt>
+    <dd><span class='object_link'><a href="" title="TIMEx (module)">TIMEx</a></span></dd>
+  </dl>
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/timex.rb<span class="defines">,<br>
+  lib/timex/clock.rb,<br> lib/timex/result.rb,<br> lib/timex/expired.rb,<br> lib/timex/version.rb,<br> lib/timex/deadline.rb,<br> lib/timex/registry.rb,<br> lib/timex/telemetry.rb,<br> lib/timex/auto_check.rb,<br> lib/timex/on_timeout.rb,<br> lib/timex/configuration.rb,<br> lib/timex/strategies/io.rb,<br> lib/timex/composers/base.rb,<br> lib/timex/named_component.rb,<br> lib/timex/strategies/base.rb,<br> lib/timex/composers/hedged.rb,<br> lib/timex/timeout_handling.rb,<br> lib/timex/strategies/ractor.rb,<br> lib/timex/strategies/unsafe.rb,<br> lib/timex/strategies/wakeup.rb,<br> lib/timex/cancellation_token.rb,<br> lib/timex/composers/adaptive.rb,<br> lib/timex/telemetry/adapters.rb,<br> lib/timex/test/virtual_clock.rb,<br> lib/timex/composers/two_phase.rb,<br> lib/timex/strategies/closeable.rb,<br> lib/timex/strategies/subprocess.rb,<br> lib/timex/strategies/cooperative.rb,<br> lib/timex/propagation/http_header.rb,<br> lib/timex/propagation/rack_middleware.rb</span>
+
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="TIMEx/AutoCheck.html" title="TIMEx::AutoCheck (module)">AutoCheck</a></span>, <span class='object_link'><a href="TIMEx/Clock.html" title="TIMEx::Clock (module)">Clock</a></span>, <span class='object_link'><a href="TIMEx/Composers.html" title="TIMEx::Composers (module)">Composers</a></span>, <span class='object_link'><a href="TIMEx/NamedComponent.html" title="TIMEx::NamedComponent (module)">NamedComponent</a></span>, <span class='object_link'><a href="TIMEx/Propagation.html" title="TIMEx::Propagation (module)">Propagation</a></span>, <span class='object_link'><a href="TIMEx/Registry.html" title="TIMEx::Registry (module)">Registry</a></span>, <span class='object_link'><a href="TIMEx/Strategies.html" title="TIMEx::Strategies (module)">Strategies</a></span>, <span class='object_link'><a href="TIMEx/Telemetry.html" title="TIMEx::Telemetry (module)">Telemetry</a></span>, <span class='object_link'><a href="TIMEx/Test.html" title="TIMEx::Test (module)">Test</a></span>, <span class='object_link'><a href="TIMEx/TimeoutHandling.html" title="TIMEx::TimeoutHandling (module)">TimeoutHandling</a></span>
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="TIMEx/CancellationToken.html" title="TIMEx::CancellationToken (class)">CancellationToken</a></span>, <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span>, <span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span>, <span class='object_link'><a href="TIMEx/Expired.html" title="TIMEx::Expired (class)">Expired</a></span>, <span class='object_link'><a href="TIMEx/Result.html" title="TIMEx::Result (class)">Result</a></span>, <span class='object_link'><a href="TIMEx/TimeoutError.html" title="TIMEx::TimeoutError (class)">TimeoutError</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="Error-constant" class="">Error =
+          
+        </dt>
+        <dd><pre class="code"><span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'>StandardError</span><span class='rparen'>)</span></pre></dd>
+      
+        <dt id="ConfigurationError-constant" class="">ConfigurationError =
+          
+        </dt>
+        <dd><pre class="code"><span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#Error-constant" title="TIMEx::Error (constant)">Error</a></span></span><span class='rparen'>)</span></pre></dd>
+      
+        <dt id="StrategyNotFoundError-constant" class="">StrategyNotFoundError =
+          
+        </dt>
+        <dd><pre class="code"><span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#Error-constant" title="TIMEx::Error (constant)">Error</a></span></span><span class='rparen'>)</span></pre></dd>
+      
+        <dt id="VERSION-constant" class="">VERSION =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Semantic version of the TIMEx gem (string).</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>0.1.0</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="ON_TIMEOUT_SYMBOLS-constant" class="">ON_TIMEOUT_SYMBOLS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Canonical set of symbol modes accepted by <code>on_timeout:</code> on <span class='object_link'><a href="#deadline-instance_method" title="TIMEx#deadline (method)">#deadline</a></span> and
+related APIs, plus <span class='object_link'><a href="TIMEx/Configuration.html#default_on_timeout=-instance_method" title="TIMEx::Configuration#default_on_timeout= (method)">Configuration#default_on_timeout=</a></span>.</p>
+<p>Kept in one place so validation, documentation, and <span class='object_link'><a href="TIMEx/TimeoutHandling.html" title="TIMEx::TimeoutHandling (module)">TimeoutHandling</a></span> stay
+aligned.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="TIMEx/Configuration.html#default_on_timeout=-instance_method" title="TIMEx::Configuration#default_on_timeout= (method)">Configuration#default_on_timeout=</a></span></li>
+    
+      <li><span class='object_link'>TimeoutHandling#handle_timeout</span></li>
+    
+  </ul>
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qsymbols_beg'>%i[</span><span class='tstring_content'>raise</span><span class='words_sep'> </span><span class='tstring_content'>raise_standard</span><span class='words_sep'> </span><span class='tstring_content'>return_nil</span><span class='words_sep'> </span><span class='tstring_content'>result</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#configuration-class_method" title="configuration (class method)">.<strong>configuration</strong>  &#x21d2; Configuration </a>
+    
+
+    
+      (also: config)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the process-wide <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span>, constructing it once under <code>CONFIG_MUTEX</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#configure-class_method" title="configure (class method)">.<strong>configure</strong> {|draft| ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Yields a duplicated <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span>, then atomically publishes it when the outermost block completes without raising.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#reset_configuration!-class_method" title="reset_configuration! (class method)">.<strong>reset_configuration!</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Replaces the configuration with a fresh <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span> under the mutex.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#call-instance_method" title="#call (instance method)">#<strong>call</strong>(deadline_or_seconds, strategy: nil, auto_check: nil, on_timeout: nil, **opts) {|deadline| ... } &#x21d2; Object </a>
+    
+
+    
+      (also: #deadline)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Primary entrypoint: runs <code>block</code> under <code>deadline_or_seconds</code> using the resolved strategy.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="configuration-class_method">
+  
+    .<strong>configuration</strong>  &#x21d2; <tt><span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span></tt> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='config-class_method'>config</span></span>
+    </span>
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns the process-wide <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span>, constructing it once under <code>CONFIG_MUTEX</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+125
+126
+127</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/configuration.rb', line 125</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_configuration'>configuration</span>
+  <span class='ivar'>@configuration</span> <span class='op'>||</span> <span class='const'>CONFIG_MUTEX</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='lbrace'>{</span> <span class='ivar'>@configuration</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="TIMEx/Configuration.html#initialize-instance_method" title="TIMEx::Configuration#initialize (method)">new</a></span></span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="configure-class_method">
+  
+    .<strong>configure</strong> {|draft| ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Yields a duplicated <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span>, then atomically publishes it when the
+outermost block completes without raising.</p>
+<p>Nested <code>configure</code> calls mutate the same draft and only the outermost swap
+commits, keeping re-entrant initialization safe.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>draft</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>mutable copy to adjust</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the block's return value</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when no block is given</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/configuration.rb', line 139</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_configure'>configure</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>TIMEx.configure requires a block</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+
+  <span class='const'>CONFIG_MUTEX</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_outer'>outer</span> <span class='op'>=</span> <span class='ivar'>@configure_draft</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='ivar'>@configure_draft</span> <span class='op'>||=</span> <span class='id identifier rubyid_configuration'>configuration</span><span class='period'>.</span><span class='id identifier rubyid_dup'>dup</span>
+    <span class='kw'>begin</span>
+      <span class='kw'>yield</span> <span class='ivar'>@configure_draft</span>
+      <span class='ivar'>@configuration</span> <span class='op'>=</span> <span class='ivar'>@configure_draft</span> <span class='kw'>if</span> <span class='id identifier rubyid_outer'>outer</span>
+    <span class='kw'>ensure</span>
+      <span class='ivar'>@configure_draft</span> <span class='op'>=</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_outer'>outer</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="reset_configuration!-class_method">
+  
+    .<strong>reset_configuration!</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Replaces the configuration with a fresh <span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span> under the mutex.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+157
+158
+159</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/configuration.rb', line 157</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_reset_configuration!'>reset_configuration!</span>
+  <span class='const'>CONFIG_MUTEX</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='lbrace'>{</span> <span class='ivar'>@configuration</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx/Configuration.html" title="TIMEx::Configuration (class)">Configuration</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="TIMEx/Configuration.html#initialize-instance_method" title="TIMEx::Configuration#initialize (method)">new</a></span></span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="call-instance_method">
+  
+    #<strong>call</strong>(deadline_or_seconds, strategy: nil, auto_check: nil, on_timeout: nil, **opts) {|deadline| ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='deadline-instance_method'>deadline</span></span>
+    </span>
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Primary entrypoint: runs <code>block</code> under <code>deadline_or_seconds</code> using the resolved strategy.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>deadline_or_seconds</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>budget or deadline</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>strategy</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>#<span class='object_link'><a href="#call-instance_method" title="TIMEx#call (method)">call</a></span></tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>registered key, callable, or <code>nil</code> for default</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>auto_check</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p><code>nil</code> uses <span class='object_link'><a href="TIMEx/Configuration.html#auto_check_default-instance_method" title="TIMEx::Configuration#auto_check_default (method)">TIMEx::Configuration#auto_check_default</a></span></p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>on_timeout</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>Proc</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p><code>nil</code> uses <span class='object_link'><a href="TIMEx/Configuration.html#default_on_timeout-instance_method" title="TIMEx::Configuration#default_on_timeout (method)">TIMEx::Configuration#default_on_timeout</a></span></p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>opts</span>
+      
+      
+        <span class='type'>(<tt>Hash{Symbol =&gt; Object}</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>forwarded to the strategy <code>#call</code></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>coerced deadline passed to the inner block</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>strategy/composer result (including timeout handler results)</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when no block is given</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex.rb', line 21</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_deadline_or_seconds'>deadline_or_seconds</span><span class='comma'>,</span> <span class='label'>strategy:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>auto_check:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>on_timeout:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>block required</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_block'>block</span>
+
+  <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="TIMEx/Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline_or_seconds'>deadline_or_seconds</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_strategy'>strategy</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx/Registry.html" title="TIMEx::Registry (module)">Registry</a></span></span><span class='period'>.</span><span class='id identifier rubyid_resolve_for_call'><span class='object_link'><a href="TIMEx/Registry.html#resolve_for_call-instance_method" title="TIMEx::Registry#resolve_for_call (method)">resolve_for_call</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_strategy'>strategy</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_cfg'>cfg</span> <span class='op'>=</span> <span class='id identifier rubyid_config'>config</span>
+  <span class='id identifier rubyid_on_timeout'>on_timeout</span> <span class='op'>||=</span> <span class='id identifier rubyid_cfg'>cfg</span><span class='period'>.</span><span class='id identifier rubyid_default_on_timeout'>default_on_timeout</span>
+  <span class='id identifier rubyid_auto_check'>auto_check</span> <span class='op'>=</span> <span class='id identifier rubyid_cfg'>cfg</span><span class='period'>.</span><span class='id identifier rubyid_auto_check_default'>auto_check_default</span> <span class='kw'>if</span> <span class='id identifier rubyid_auto_check'>auto_check</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+  <span class='id identifier rubyid_runner'>runner</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_auto_check'>auto_check</span>
+      <span class='tlambda'>-&gt;</span><span class='lparen'>(</span><span class='id identifier rubyid_d'>d</span><span class='rparen'>)</span> <span class='tlambeg'>{</span> <span class='const'><span class='object_link'><a href="" title="TIMEx (module)">TIMEx</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="TIMEx/AutoCheck.html" title="TIMEx::AutoCheck (module)">AutoCheck</a></span></span><span class='period'>.</span><span class='id identifier rubyid_run'><span class='object_link'><a href="TIMEx/AutoCheck.html#run-instance_method" title="TIMEx::AutoCheck#run (method)">run</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_d'>d</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='kw'>yield</span><span class='lparen'>(</span><span class='id identifier rubyid_d'>d</span><span class='rparen'>)</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_block'>block</span>
+    <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_strategy'>strategy</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span>
+    <span class='label'>deadline:</span><span class='comma'>,</span>
+    <span class='label'>on_timeout:</span><span class='comma'>,</span>
+    <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='comma'>,</span>
+    <span class='op'>&amp;</span><span class='id identifier rubyid_runner'>runner</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu May 14 21:51:12 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.4.9).
+</div>
+
+    </div>
+  </body>
+</html>

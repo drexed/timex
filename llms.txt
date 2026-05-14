@@ -1,0 +1,50 @@
+# TIMEx
+
+> A Swiss-army knife for timeouts in Ruby.
+
+TIMEx is a Ruby library for safe, composable timeouts: a Deadline value object, cooperative and forceful strategies, composers, propagation, and telemetry—without stdlib Timeout's async-exception hazards.
+
+## Getting Started
+
+- [Home](https://drexed.github.io/timex/index.md): TIMEx overview, installation, and landing content
+- [Getting Started](https://drexed.github.io/timex/getting_started/index.md): TIMEx.deadline, check!, requirements, quick tour
+- [Comparison](https://drexed.github.io/timex/comparison/index.md): TIMEx vs stdlib Timeout safety trade-offs
+- [Configuration](https://drexed.github.io/timex/configuration/index.md): TIMEx.configure process-wide defaults
+- [Migration](https://drexed.github.io/timex/migrating_from_stdlib_timeout/index.md): Leaving Timeout.timeout behind
+
+## Basics
+
+- [Deadline](https://drexed.github.io/timex/basics/deadline/index.md): Deadline monotonic wall clock min shield headers
+- [Clock](https://drexed.github.io/timex/basics/clock/index.md): Real and virtual clocks for tests
+- [Facade](https://drexed.github.io/timex/basics/facade/index.md): TIMEx.deadline TIMEx.call strategy on_timeout
+- [Cancellation Token](https://drexed.github.io/timex/basics/cancellation_token/index.md): Cancellation token integration
+
+## Strategies
+
+- [Cooperative](https://drexed.github.io/timex/strategies/cooperative/index.md): Cooperative checkpoints check!
+- [IO](https://drexed.github.io/timex/strategies/io/index.md): Per-syscall IO timeouts
+- [Wakeup](https://drexed.github.io/timex/strategies/wakeup/index.md): Wakeup strategy
+- [Closeable](https://drexed.github.io/timex/strategies/closeable/index.md): Closeable resource strategy
+- [Subprocess](https://drexed.github.io/timex/strategies/subprocess/index.md): Isolated subprocess timeouts
+- [Ractor](https://drexed.github.io/timex/strategies/ractor/index.md): Ractor-based abandonment
+- [Unsafe](https://drexed.github.io/timex/strategies/unsafe/index.md): Thread.raise escape hatch
+
+## Composers
+
+- [TwoPhase](https://drexed.github.io/timex/composers/two_phase/index.md): Soft then hard two-phase timeouts
+- [Hedged](https://drexed.github.io/timex/composers/hedged/index.md): Hedged idempotent RPC tail latency
+- [Adaptive](https://drexed.github.io/timex/composers/adaptive/index.md): Adaptive timeout from history
+
+## Propagation
+
+- [HTTP Header](https://drexed.github.io/timex/propagation/http_header/index.md): X-TIMEx-Deadline HTTP propagation
+- [Rack Middleware](https://drexed.github.io/timex/propagation/rack/index.md): Rack middleware for request budgets
+
+## Guides
+
+- [Internals](https://drexed.github.io/timex/internals/index.md): Registry strategies wiring
+- [Tips and Tricks](https://drexed.github.io/timex/tips_and_tricks/index.md): Patterns and gotchas
+- [Testing](https://drexed.github.io/timex/testing/index.md): Virtual clock and TIMEx.reset_configuration!
+- [Telemetry](https://drexed.github.io/timex/telemetry/index.md): Null Logger ASN OpenTelemetry adapters
+- [Auto-Check](https://drexed.github.io/timex/auto_check/index.md): TracePoint auto check! for legacy code
+

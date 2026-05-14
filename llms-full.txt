@@ -1,0 +1,1841 @@
+# TIMEx
+
+> A Swiss-army knife for timeouts in Ruby.
+
+TIMEx is a Ruby library for safe, composable timeouts: a Deadline value object, cooperative and forceful strategies, composers, propagation, and telemetry—without stdlib Timeout's async-exception hazards.
+
+# Getting Started
+
+
+# Getting Started
+
+______________________________________________________________________
+
+Note
+
+These docs follow `main`. If you are on an older gem version, open the `docs/` folder from that release’s tag so examples match what you run.
+
+Welcome. **TIMEx** helps you answer a boring question with a calm voice: *“How long am I willing to let this run?”* You describe a budget, run a block, and the library keeps time using a **`Deadline`** you can pass around like cash.
+
+If you have ever wrapped work in `Timeout.timeout` and crossed your fingers, TIMEx is the “let’s be explicit instead” version.
+
+**Sound familiar?**
+
+- You need a timeout around a loop, but you do not want random exceptions ripping through mutexes.
+- You inherited code that never calls `check!` and you cannot rewrite it today.
+- You want nested calls to share one budget instead of starting ten unrelated timers.
+
+**What you get on day one:**
+
+- `TIMEx.deadline` / `TIMEx.call` as the front door—good defaults, obvious escape hatches.
+- A **`Deadline`** in your block so cooperative code can `check!` at safe spots.
+- A small ladder of stronger tools (auto-check, `TwoPhase`, subprocess) when cooperation is not possible.
+
+## Requirements
+
+- **Ruby:** MRI 3.3+ (or a recent JRuby / TruffleRuby that matches)
+
+## Installation
+
+Pick one:
+
+```sh
+gem install timex
+
+# - or -
+
+bundle add timex
+```
+
+## Configuration
+
+Most apps start with defaults. When you want process-wide settings (default strategy, telemetry, auto-check), use one `TIMEx.configure` block—full tour in [Configuration](https://drexed.github.io/timex/configuration/index.md).
+
+## Quick Start
+
+Below is the smallest happy path: two seconds of budget, a loop, and a `check!` inside the loop so TIMEx can stop cooperatively.
+
+```ruby
+require "timex"
+
+result = TIMEx.deadline(2.0) do |deadline|
+  data = []
+  100.times do
+    deadline.check!
+    data << expensive_step
+  end
+  data
+end
+```
+
+What just happened?
+
+- `TIMEx.deadline(seconds_or_deadline) { |deadline| ... }` picks the **default cooperative** strategy unless you override it.
+- The block receives a **`Deadline`**. Call **`deadline.check!`** now and then so time actually gets enforced inside pure Ruby work.
+
+Same thing, nicer name for code review:
+
+```ruby
+TIMEx.deadline(rpc.deadline_seconds) { rpc.call }
+```
+
+(`TIMEx.deadline` is simply an alias of `TIMEx.deadline`.)
+
+## Real-world: bounded work inside a job
+
+Say a Sidekiq job pulls up to 10_000 rows and calls an external scorer. You want the whole job under five seconds and each row to notice the clock:
+
+```ruby
+TIMEx.deadline(5.0) do |deadline|
+  rows.each do |row|
+    deadline.check!
+    scorer.score(row)
+  end
+end
+```
+
+Same pattern fits cron scripts, Rake tasks, and Puma request bodies—anywhere you own the loop and can afford a `check!` per iteration.
+
+## When the block cannot call `check!`
+
+Sometimes you do not control the loop—legacy gem, tight C extension, user plugin. You still have options; they get stronger as you go down the list:
+
+1. **Auto-check** — TIMEx uses TracePoint to poll the deadline for you (opt-in, not free lunch):
+
+```ruby
+TIMEx.deadline(2.0, auto_check: true) { legacy_loop }
+```
+
+Details: [Auto-check](https://drexed.github.io/timex/auto_check/index.md).
+
+1. **TwoPhase** — cooperative first, then a hard backstop after a grace window (the block may run **twice** on escalation, so the work must be safe to repeat):
+
+```ruby
+TIMEx::Composers::TwoPhase.new(
+  soft: :cooperative, hard: :unsafe, grace: 0.5, hard_deadline: 1.0,
+  idempotent: true
+).call(deadline: 2.0) { legacy_loop }
+```
+
+Details: [TwoPhase](https://drexed.github.io/timex/composers/two_phase/index.md).
+
+1. **Subprocess** — run the risky bit in a child process you can terminate:
+
+```ruby
+TIMEx.deadline(2.0, strategy: :subprocess) { c_extension_call }
+```
+
+Details: [Subprocess](https://drexed.github.io/timex/strategies/subprocess/index.md).
+
+## Pick a strategy (cheat sheet)
+
+Follow the nodes honestly—if you lie to this chart, production will tattle on you later.
+
+```
+flowchart TB
+  A[Need a timeout?] --> B{Network or disk IO?}
+  B -- yes --> C[TIMEx::Strategies::IO]
+  B -- no --> D{Your own pure Ruby loop?}
+  D -- yes --> E[Cooperative + check!]
+  D -- no --> F{C extension you can't modify?}
+  F -- yes --> G[Subprocess]
+  F -- no --> H{Untrusted user code?}
+  H -- yes --> G
+  H -- no --> I{Cleanup must run, then hard stop?}
+  I -- yes --> J[TwoPhase]
+  I -- no --> K{Tail-latency RPC?}
+  K -- yes --> L[Hedged]
+  K -- no --> M[Cooperative]
+```
+
+## Reach for native timeouts first
+
+TIMEx does not stop the IO — the client does
+
+**Always set the library’s built-in timeout before wrapping the call in TIMEx.** Wrapping a `Net::HTTP` request in `TIMEx.deadline(2.0)` without also setting `read_timeout = 2.0` means the socket can keep blocking after the budget expires.
+
+Native timeouts run *inside the client* — socket options, driver settings, query cancels — and stop the *real* work. TIMEx caps how long *Ruby waits* for that work to come back. The two solve different halves of the problem, and you almost always want both.
+
+The right mental model is layered:
+
+1. Configure the client’s native timeout so the IO itself can fail fast.
+1. Wrap the call in `TIMEx.deadline` to enforce a *whole-operation* budget across multiple hops, retries, or pure-Ruby work in between.
+1. Pass `Deadline` down the stack so each hop shrinks the budget with `Deadline#min` instead of starting a fresh timer.
+
+Common knobs to set first:
+
+| Library                   | Use this first                                         |
+| ------------------------- | ------------------------------------------------------ |
+| `Net::HTTP`               | `open_timeout=`, `read_timeout=`, `write_timeout=`     |
+| Faraday / HTTPX / HTTP.rb | `open_timeout`, `timeout`, `request :timeout`          |
+| `redis-rb`                | `connect_timeout`, `read_timeout`, `write_timeout`     |
+| `pg` / `mysql2`           | `connect_timeout`, `statement_timeout`, `read_timeout` |
+| ActiveRecord              | `connect_timeout`, `statement_timeout`, `lock_timeout` |
+| AWS / Google SDKs         | client-level `http_open_timeout`, `http_read_timeout`  |
+| Sidekiq / Rack            | server `timeout` / `worker_timeout` settings           |
+| gRPC                      | per-call `deadline:`                                   |
+
+Reach for TIMEx when:
+
+- You need *one* budget shared across multiple native-timeout calls.
+- You own a pure-Ruby loop and can sprinkle `deadline.check!`.
+- The code has *no* native timeout — legacy gems, C extensions, untrusted blocks. See [Subprocess](https://drexed.github.io/timex/strategies/subprocess/index.md) and [TwoPhase](https://drexed.github.io/timex/composers/two_phase/index.md).
+
+# Comparison
+
+Picking a timeout story is less scary when you line the options up next to each other. This page is a cheat sheet: stdlib `Timeout`, common async timeouts, and TIMEx—without pretending they are the same tool.
+
+## At a glance
+
+| Concern                      | ⏱️ stdlib `Timeout`              | ⚡ `Async::Task#with_timeout`   | ⏰ TIMEx                                          |
+| ---------------------------- | -------------------------------- | ------------------------------- | ------------------------------------------------- |
+| 🧭 Default strategy          | Async exception (`Thread#raise`) | Fiber-scheduler aware           | Cooperative checkpoint                            |
+| 🛡️ Safe for shared state     | ❌ No                            | ✅ Yes (inside the fiber model) | ✅ Yes                                            |
+| 🖥️ Interrupts CPU-bound work | ⚠️ Yes (risky)                   | ❌ No                           | 🔧 Opt-in (`auto_check`, `Subprocess`, …)         |
+| 💿 Interrupts blocking IO    | ✅ Yes (often)                   | ✅ Yes                          | ✅ Yes (`IO` strategy)                            |
+| 🔌 Per-syscall IO timeouts   | ❌ No                            | 🔧 Indirect                     | ✅ Yes (`IO.read` / `write` / `connect`)          |
+| 🌐 Cross-host propagation    | ❌ No                            | ❌ No                           | ✅ `X-TIMEx-Deadline` header                      |
+| 🧩 Pluggable strategies      | ❌ No                            | ❌ No                           | ✅ Registry + companion gems                      |
+| 📊 Telemetry                 | ❌ No                            | 🔧 Some                         | ✅ Active Support / OpenTelemetry / Logger / Null |
+| ⏳ Grace + escalation        | ❌ No                            | 🔧 Manual                       | ✅ `TwoPhase` composer                            |
+| 🎯 Hedged execution          | ❌ No                            | ❌ No                           | ✅ `Hedged` composer                              |
+| 📈 Adaptive timeout          | ❌ No                            | ❌ No                           | ✅ `Adaptive` composer                            |
+
+Native timeouts beat *all* of these
+
+Before stdlib `Timeout`, `Async`, **or** TIMEx, set the timeout your client already ships with — `Net::HTTP#read_timeout`, `redis-rb` `:read_timeout`, `pg` `statement_timeout`, gRPC per-call `deadline:`, etc. Those run inside the driver and actually stop the IO. Use TIMEx to coordinate a *budget across* those native timeouts, not to replace them.
+
+## When stdlib is still fine
+
+- Throwaway scripts where “good enough” beats “provably safe”.
+- A single block of pure Ruby you have read end-to-end and you accept async interruption there.
+- Places you have already audited for mutexes, half-written buffers, and `rescue Exception` swallowing timeouts.
+
+## When TIMEx is the happier path
+
+- Library code that should be safe for strangers to call.
+- Multi-tier systems where one budget should flow through the whole tree.
+- Work stuck in C extensions that ignore Ruby interrupts.
+- Teams whose current plan B is “kill the worker and hope”.
+
+# Configuration
+
+TIMEx ships with sensible defaults. When you need the whole process to agree on strategy, clocks, telemetry, or auto-check behavior, this is the knob panel—one `TIMEx.configure` block and you are done.
+
+## Global defaults
+
+```ruby
+TIMEx.configure do |c|
+  c.default_strategy    = :cooperative   # Symbol or callable strategy
+  c.default_on_timeout  = :raise         # see table below
+  c.auto_check_default  = false          # opt-in TracePoint cancellation
+  c.auto_check_interval = 1_000          # TracePoint :line / :b_return events between checks
+  c.telemetry_adapter   = nil            # nil → Null adapter (see Telemetry)
+  c.clock               = nil            # nil → monotonic + wall from the process
+  c.skew_tolerance_ms   = 250            # wall skew tolerance when parsing headers
+end
+```
+
+| Attribute             | What it does                                                                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default_strategy`    | Which strategy runs when you omit `strategy:` on `TIMEx.deadline`.                                                                                                     |
+| `default_on_timeout`  | `:raise` (default `TIMEx::Expired`), `:raise_standard` (`TimeoutError`), `:return_nil`, `:result` (`TIMEx::Result.timeout`), or a `Proc`. Per-call `on_timeout:` wins. |
+| `auto_check_default`  | When `true`, every `TIMEx.deadline` acts like `auto_check: true` unless you override per call. See [Auto-check](https://drexed.github.io/timex/auto_check/index.md).   |
+| `auto_check_interval` | Positive integer: count of `:line` / `:b_return` TracePoint events between deadline polls. Bigger = cheaper, slower to notice expiry.                                  |
+| `telemetry_adapter`   | Object responding to **`#emit`** (subclass `Telemetry::Adapters::Base` and you get `start` / `finish` for free). `nil` → Null.                                         |
+| `clock`               | Custom `#monotonic_ns` / `#wall_ns` clock for the process, or `nil` for the default. Tests usually use `TIMEx::Test.with_virtual_clock` instead.                       |
+| `skew_tolerance_ms`   | When a header uses `wall=`, drift beyond this (ms) emits telemetry—handy for chasing NTP or odd clients.                                                               |
+
+## Tests and one-off resets
+
+```ruby
+TIMEx.reset_configuration!
+```
+
+Handy in specs so one example does not leak settings into the next.
+
+## Real-world: one initializer, whole fleet
+
+A typical Rails (or other long-lived Ruby) process sets telemetry once and keeps cooperative timeouts as the default so library code stays safe:
+
+```ruby
+# config/initializers/timex.rb
+TIMEx.configure do |c|
+  c.default_strategy    = :cooperative
+  c.telemetry_adapter   = TIMEx::Telemetry::Adapters::OpenTelemetry.new
+  c.skew_tolerance_ms   = 500   # k8s nodes with loose NTP — widen before paging ops
+end
+```
+
+If only a few hot paths need `auto_check: true`, leave `auto_check_default` off and opt in per call so TracePoint cost stays localized.
+
+## Telemetry adapters
+
+```ruby
+# Active Support Notifications
+TIMEx.configure do |c|
+  c.telemetry_adapter = TIMEx::Telemetry::Adapters::ActiveSupportNotifications.new
+end
+ActiveSupport::Notifications.subscribe(/^timex\./) { |*args| ... }
+
+# OpenTelemetry
+TIMEx.configure do |c|
+  c.telemetry_adapter = TIMEx::Telemetry::Adapters::OpenTelemetry.new
+end
+
+# Plain Logger
+TIMEx.configure do |c|
+  c.telemetry_adapter = TIMEx::Telemetry::Adapters::Logger.new(Rails.logger)
+end
+```
+
+Event shapes live in [Telemetry](https://drexed.github.io/timex/telemetry/index.md).
+
+## Per-call overrides
+
+Most of the same ideas can be set just for one call:
+
+```ruby
+TIMEx.deadline(2.0,
+  strategy:   :unsafe,
+  auto_check: true,
+  on_timeout: ->(e) { Rails.logger.warn("timed out: #{e.message}"); nil }
+) { work }
+```
+
+Per-call options beat global configuration for that invocation only.
+
+# Migrating from stdlib `Timeout`
+
+If your muscle memory says `require "timeout"` and `Timeout.timeout(n)`, you are not alone. This page is a gentle swap guide: same rough idea (stop after N seconds), but with names and knobs that play nicely with the rest of TIMEx.
+
+## TL;DR
+
+```ruby
+# Before
+require "timeout"
+Timeout.timeout(2) { work }
+
+# After (1) — still interrupts the block like stdlib, but you asked for it by name
+require "timex"
+TIMEx.deadline(2.0, strategy: :unsafe) { work }
+
+# After (2) — nicer when you control the loop: you pick safe places to look at the clock
+TIMEx.deadline(2.0) do |d|
+  loop do
+    d.check!
+    work_step
+  end
+end
+```
+
+Path (1) is the “I need a drop-in” story. Path (2) is the “I can add a few `check!` calls” story—the one we hope new code uses.
+
+## Real-world: replace `Timeout` in one integration
+
+A legacy integration used `Timeout.timeout(30)` around a SOAP client. The first safe step is naming the sharp edge, then tightening the loop when you touch that file again:
+
+```ruby
+# Before — whole client call interrupted asynchronously
+Timeout.timeout(30) { soap_client.call(payload) }
+
+# After — same urgency, explicit unsafe strategy until you can add check! / IO
+TIMEx.deadline(30.0, strategy: :unsafe) { soap_client.call(payload) }
+```
+
+Once the SOAP layer exposes streaming or per-chunk hooks, switch to `TIMEx::Strategies::IO` or cooperative `check!` and drop `:unsafe`.
+
+## Pick your replacement (simple matrix)
+
+| What you are wrapping                                         | Reach for                                                                                                                 |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| A pure Ruby loop you wrote                                    | Cooperative mode + `deadline.check!`                                                                                      |
+| `Net::HTTP`, sockets, blocking IO                             | `TIMEx::Strategies::IO` (read / write / connect) or the library’s own `*_timeout` options                                 |
+| A C extension call you cannot change                          | `Subprocess`                                                                                                              |
+| A whole Rack request                                          | `Propagation::RackMiddleware` + `TwoPhase`                                                                                |
+| A background job with a soft “please stop” and a hard ceiling | `TwoPhase` (soft: cooperative, hard: subprocess)                                                                          |
+| Code you cannot audit line by line                            | `TwoPhase` (soft: unsafe, hard: subprocess) — still clearer than stdlib because the hard stop lives in a separate process |
+
+If a row feels fuzzy, skim [Getting Started](https://drexed.github.io/timex/getting_started/index.md) and the strategy pages—it is OK to read twice.
+
+## Why bother leaving stdlib?
+
+- **Random interrupt points.** `Timeout.timeout` raises on whatever Ruby instruction happens to be running. That can mean “oops, we were holding a mutex,” which is hard to debug and easy to ship by accident.
+- **Global thread tricks.** The mechanism is coarse; a bare `rescue` or `rescue Exception` can hide the timeout and leave you thinking work finished when it did not.
+- **No shared budget.** Nested calls each start their own timer. TIMEx prefers one deadline you pass down like a shared allowance.
+- **You can see timeouts happen.** Strategies emit finish events (strategy, outcome, elapsed time). Wire a [Telemetry](https://drexed.github.io/timex/telemetry/index.md) adapter and your logs or traces tell the same story your code does.
+
+None of this means stdlib is “evil” for every script—see [Comparison](https://drexed.github.io/timex/comparison/index.md) for when “good enough” is honestly good enough.
+# Basics
+
+# Deadline
+
+If TIMEx were a board game, **`TIMEx::Deadline`** would be the money on the table. Strategies, composers, and your own code all speak the same object: “how much time is left, and when is that officially over?”
+
+You can build one from seconds, from a wall-clock moment, or from `nil` / `Numeric` shorthands—everything else in the gem is basically choreography around this value.
+
+## Build one
+
+```ruby
+TIMEx::Deadline.in(1.5)                # 1.5s from “now” (monotonic clock)
+TIMEx::Deadline.at_wall(Time.parse("2026-01-01T00:00Z"))
+TIMEx::Deadline.infinite               # never expires (identity for #min)
+TIMEx::Deadline.coerce(2.0)            # Numeric → Deadline; handy at boundaries
+```
+
+**Mental model:** `in` is “budget from now.” `at_wall` is “real-world calendar time,” useful when another machine sent you a timestamp. `infinite` means “no rush.” `coerce` is the polite adapter when someone hands you a raw number.
+
+## Read it
+
+```ruby
+d.remaining        # Float seconds left
+d.remaining_ms     # same idea, milliseconds
+d.remaining_ns     # integer nanoseconds (sharp elbows for hot paths)
+d.initial_ms       # original budget in ms (finite deadlines), handy for telemetry
+d.expired?         # true once monotonic “now” passes the anchor
+d.infinite?
+d.depth            # how many hops this budget traveled (propagation)
+d.origin           # optional label for who started the clock
+```
+
+If you are new here: **`remaining`** is the human-friendly number; **`expired?`** is the yes/no gate before you keep burning CPU.
+
+## Combine and enforce
+
+```ruby
+inner.min(outer)         # tighter deadline wins; infinite acts like “no opinion”
+deadline.check!          # raises TIMEx::Expired if you are already late
+deadline.shield { ... }  # run cleanup without check! ruining your day
+```
+
+**`min`** is how nested calls share one budget: whoever is stricter wins. **`check!`** is the cooperative heartbeat—call it in loops you control. **`shield`** is for “I know we are past the limit but I still need two lines of cleanup.”
+
+## Real-world: caller budget vs local SLA
+
+An edge handler might receive `X-TIMEx-Deadline` from a mobile client while your service policy says “never more than 800 ms in this tier.” **`min`** applies both caps so the tighter wins—users cannot accidentally grant themselves infinite time, and a stingy gateway cannot starve you past what your team promised:
+
+```ruby
+inbound  = TIMEx::Deadline.from_header(request.get_header("X-TIMEx-Deadline"))
+local    = TIMEx::Deadline.in(0.8)
+deadline = inbound ? inbound.min(local) : local
+TIMEx.deadline(deadline) { downstream.call(deadline: deadline) }
+```
+
+## On the wire (headers)
+
+```ruby
+deadline.to_header                    # "ms=1837;depth=1"
+deadline.to_header(prefer: :wall)     # "wall=2026-01-01T00:00:00.000Z;depth=1"
+TIMEx::Deadline.from_header(str)      # parse; nil if the string is nonsense
+```
+
+| Piece   | Plain English                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ms=`   | “Milliseconds left,” tied to **monotonic** time—great inside one data center because the wall clock cannot jump backward and confuse the math.          |
+| `wall=` | “Absolute stop time,” better when hosts disagree a little on “now” but you trust NTP-ish sync. The receiver re-anchors against its own monotonic clock. |
+
+If wall skew looks ugly, TIMEx can **warn through telemetry** when drift beats `config.skew_tolerance_ms`. See [Configuration](https://drexed.github.io/timex/configuration/index.md) and [Telemetry](https://drexed.github.io/timex/telemetry/index.md).
+
+## Why monotonic?
+
+Wall clock can jump backward (NTP fixes itself, leap shenanigans, someone moves the system clock). **`CLOCK_MONOTONIC`** only moves forward, so a deadline built on it does not accidentally gain or lose minutes because the OS “fixed” time.
+
+# Clock
+
+Real programs wait on the network. **Tests** should not spend real seconds doing that. `TIMEx::Clock` is the small indirection that answers “what time is it?” so production keeps real nanoseconds while specs can **fast-forward** time without `sleep`.
+
+## Production clock (default)
+
+In the wild, TIMEx reads **`Process.clock_gettime`** in nanoseconds:
+
+- **Monotonic** clock drives deadlines (`Deadline.in`, `expired?`, `check!`).
+- **Wall** clock is only for things like `Deadline#wall_ns` when you serialize or compare with timestamps humans care about.
+
+You rarely touch this directly—think of it as the honest stopwatch behind the curtain.
+
+## Virtual clock in tests
+
+```ruby
+TIMEx::Test.with_virtual_clock do
+  d = TIMEx::Deadline.in(1.0)
+  TIMEx::Test.advance(2.0)
+  d.expired? # => true
+end
+```
+
+The fake clock lives in a **thread variable** (`Thread.current.thread_variable_*`), which means **all fibers in the same thread share it**—useful when you `Fiber.schedule` inside a spec. Only code paths that ask TIMEx for time through the deadline APIs above will “see” the jump; child threads start with the real clock unless you install one explicitly there too.
+
+**Heads-up:** strategies that block on the **real OS**—think `Subprocess` or `Wakeup`—still wait on real kernel time. The virtual clock is for Ruby-level deadline math, not for “make `Kernel#sleep` instant.”
+
+## Bring your own clock
+
+Anything that responds to **`monotonic_ns`** and **`wall_ns`** (integer nanoseconds) can stand in:
+
+```ruby
+TIMEx.configure { |c| c.clock = MySimulatedClock.new }
+```
+
+Or keep it scoped:
+
+```ruby
+TIMEx::Clock.with(MySimulatedClock.new) { ... }
+```
+
+Use that when you embed TIMEx inside a bigger simulator or deterministic replay tooling.
+
+# Facade: `TIMEx.deadline`, `TIMEx.call`
+
+These two methods are the **front door** of the gem. Same story every time: you bring a budget (seconds, `nil`, or a ready-made `Deadline`), TIMEx picks a strategy, and your block receives the live **`Deadline`** so cooperative code can `check!` as it goes.
+
+```ruby
+TIMEx.deadline(2.0) { |d| work(d) }
+
+# alias—nice for code review
+TIMEx.deadline(2.0) { |d| work(d) }
+
+# you already built the Deadline
+TIMEx.deadline(my_deadline) { |d| work(d) }
+```
+
+## Options
+
+```ruby
+TIMEx.deadline(
+  deadline_or_seconds,
+  strategy:    nil,         # Symbol, callable strategy, or nil → default
+  auto_check:  nil,         # nil → use config default; true/false per call
+  on_timeout:  :raise,      # :raise | :raise_standard | :return_nil | :result | Proc
+  **strategy_specific_opts,
+  &block
+)
+```
+
+| Option                     | What it does                                                                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `strategy:`                | Override the default cooperative runner. Reach for IO, subprocess, or a composer instance when the problem is not “my own Ruby loop.”                                         |
+| `auto_check:`              | Opt into TracePoint polling so legacy code gets `check!` without you rewriting it—trade CPU for safety. See [Auto-check](https://drexed.github.io/timex/auto_check/index.md). |
+| `on_timeout:`              | What happens when time is up (`Expired` vs `TimeoutError`, `nil`, `Result.timeout`, or your proc). Per-call wins over global config.                                          |
+| `**strategy_specific_opts` | Passed through to the strategy you picked—each strategy documents its own extras.                                                                                             |
+
+### `on_timeout:` cheat sheet
+
+| Value              | What you get back                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `:raise` (default) | Raises `TIMEx::Expired` (a bare `Exception`—survives `rescue => e`).                                                    |
+| `:raise_standard`  | Raises `TIMEx::TimeoutError` (a `StandardError`); original `Expired` is on `#original`.                                 |
+| `:return_nil`      | Quietly returns `nil` so the caller can branch on truthiness.                                                           |
+| `:result`          | Returns a frozen `TIMEx::Result.timeout(...)` you pattern-match (`result in [:timeout, _, _]`) or `value!` to re-raise. |
+| `Proc`             | Your proc receives the `Expired`; whatever it returns becomes the call's return value.                                  |
+
+## How the default strategy is chosen
+
+TIMEx walks this list and stops at the first hit:
+
+1. You passed **`strategy:`** explicitly—always wins.
+1. **`Registry.default_selector`** says otherwise (companion gems sometimes inject “use the scheduler when Async is active,” that kind of thing).
+1. Fall back to **`config.default_strategy`**, which is **`:cooperative`** out of the box.
+
+If that sounds like plumbing, it is—most apps only touch step 1 when they need to. Global wiring lives in [Configuration](https://drexed.github.io/timex/configuration/index.md) and [Internals](https://drexed.github.io/timex/internals/index.md).
+
+## Real-world: hand an SDK the remaining budget
+
+The Rack middleware already minted a `Deadline` for this request, and your Stripe (or any third-party) SDK accepts its own `timeout:` option. Use **`deadline`** so you do not start a fresh clock, and feed **`deadline.remaining`** into the SDK so its socket timeouts agree with what the caller asked for:
+
+```ruby
+def charge!(amount_cents:, customer_id:, deadline:)
+  TIMEx.deadline(deadline) do |d|
+    Stripe::PaymentIntent.create(
+      { amount: amount_cents, currency: "usd", customer: customer_id, confirm: true },
+      { open_timeout: d.remaining, read_timeout: d.remaining }
+    )
+  end
+end
+```
+
+If `d` expires mid-call, Stripe’s own socket timeout fires with the same number TIMEx is tracking—no “my timer says 0, yours says 30” mystery.
+
+# Cancellation Token
+
+Sometimes you need a **loud “stop, please”** flag that many threads can read, and a few friendly callbacks when the flag flips. That is **`TIMEx::CancellationToken`**: a thread-safe, one-shot cancel switch with observer hooks.
+
+Composers like **`Hedged`**, plus the **`Wakeup`** strategy, use this under the hood. You can also use it directly when **your** code owns the lifecycle and you want the same “cancel + reason” vocabulary.
+
+## Quick example
+
+```ruby
+token = TIMEx::CancellationToken.new
+
+token.on_cancel do |reason|
+  release_resources(reason)
+end
+
+# Somewhere else in the app
+token.cancel(reason: :user_aborted)
+token.cancelled? # => true
+token.reason     # => :user_aborted
+```
+
+## Rules of the road
+
+| Behavior                              | Plain English                                                      |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| Observers registered **after** cancel | They still run—TIMEx does not leave new listeners hanging.         |
+| Second `cancel`                       | **Idempotent:** returns `false`, does not spam callbacks again.    |
+| `reason`                              | Optional symbol or object so teardown code knows *why* life ended. |
+
+Think of it as a tiny pub/sub for “we are done here,” without inventing your own mutex soup.
+
+## When to reach for it
+
+- You are threading cancellation through **your** layers and want one shared object.
+- You are composing TIMEx pieces and need the same semantics the built-in strategies expect.
+
+If you only need “stop this TIMEx block,” a **`Deadline`** plus `check!` is usually simpler—tokens shine when cancellation is **orthogonal** to the time budget.
+
+## Real-world: user clicks “Cancel export”
+
+A CSV export streams rows into S3. A producer thread reads from the DB while an uploader thread pushes parts. When the user hits **Cancel** in the UI, the controller flips one token—both threads notice on their next loop iteration, and the `on_cancel` hook logs *why* so support has a trail:
+
+```ruby
+token = TIMEx::CancellationToken.new
+token.on_cancel { |reason| Rails.logger.info("export aborted: #{reason}") }
+
+producer = Thread.new do
+  User.find_each(batch_size: 500) do |user|
+    break if token.cancelled?
+    queue << UserExportRow.from(user)
+  end
+end
+
+uploader = Thread.new do
+  multipart = S3.start_multipart(bucket: "exports", key: export_id)
+  until token.cancelled? || queue.empty?
+    multipart.upload_part(queue.pop)
+  end
+  token.cancelled? ? multipart.abort : multipart.complete
+end
+
+# In the controller action that handles DELETE /exports/:id
+token.cancel(reason: :user_aborted)
+```
+
+Two unrelated threads, one switch, predictable teardown—no `Thread#kill`, no half-uploaded zombie part lingering in S3.
+# Strategies
+
+# Cooperative
+
+This is TIMEx’s **default** strategy: you promise to peek at the clock now and then, and TIMEx promises not to surprise you with magic interrupts.
+
+**Mental model:** a hike where *you* choose every safe rest stop. The trail (`deadline.check!`) is where you look at your watch. If you never stop, nobody pulls you off the path—you just might finish late.
+
+## Quick example
+
+```ruby
+TIMEx.deadline(2.0) do |d|
+  rows.each do |row|
+    d.check!
+    process(row)
+  end
+end
+```
+
+`TIMEx.deadline` hands you a **`Deadline`** as `d`. Sprinkle **`check!`** inside loops you own. When time is up, the next `check!` raises **`TIMEx::Expired`**. The strategy also runs a final `check!` after your block returns, so a long non-cooperative tail still surfaces as `Expired` instead of silently overrunning.
+
+## At a glance
+
+| Topic                         | Plain English                                                                                                                                                                           |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CPU-heavy work                | Only stops at your **`check!`** calls (or turn on [auto-check](https://drexed.github.io/timex/auto_check/index.md) if you cannot edit the loop).                                        |
+| Blocking IO                   | Does **not** cut off a stuck `read`—reach for [IO](https://drexed.github.io/timex/strategies/io/index.md) or [Closeable](https://drexed.github.io/timex/strategies/closeable/index.md). |
+| Mutexes and shared state      | Friendly: no random thread exceptions mid-update.                                                                                                                                       |
+| Runs everywhere               | MRI, no extra gems—this is the boring portable choice.                                                                                                                                  |
+| How “tight” the timeout feels | As fine as you make your checkpoints.                                                                                                                                                   |
+| Nesting                       | Yes—combine budgets with **`Deadline#min`**.                                                                                                                                            |
+| Runtime cost                  | Basically free between checkpoints.                                                                                                                                                     |
+
+## One sharp edge: `rescue Exception`
+
+**`TIMEx::Expired`** subclasses **`Exception`**, not **`StandardError`**, so a normal `rescue => e` will **not** swallow it. Good.
+
+A wide `rescue Exception` **will** catch it on purpose. If legacy code might do that, wrap the work in **[TwoPhase](https://drexed.github.io/timex/composers/two_phase/index.md)** so a cooperative phase still gets a hard backstop:
+
+```ruby
+TIMEx::Composers::TwoPhase.new(
+  soft: :cooperative, hard: :unsafe, grace: 0.5, hard_deadline: 1.0,
+  idempotent: true
+).call(deadline: 2.0) { legacy_block }
+```
+
+`bin/timex-lint` nags about bare `rescue` and `rescue Exception` inside `TIMEx.deadline` blocks—listen to it.
+
+## Real-world: nightly Sidekiq export that yields before SIGTERM
+
+Sidekiq workers get ~25 s of grace on shutdown. A nightly export that walks `User.find_each` in batches needs to finish a batch and **stop** before the grace window closes—otherwise the worker dies mid-upload and tomorrow’s job re-processes the same rows. `check!` between batches is enough:
+
+```ruby
+class NightlyExportJob
+  include Sidekiq::Job
+
+  def perform(export_id)
+    TIMEx.deadline(20.0) do |deadline|
+      User.find_each(batch_size: 500) do |user|
+        deadline.check!
+        ExportRow.upsert(user.attributes, export_id: export_id)
+      end
+    end
+  rescue TIMEx::Expired
+    NightlyExportJob.perform_in(1.minute, export_id)
+  end
+end
+```
+
+The `check!` lands at safe places (between rows, no half-written upsert), and the rescue re-enqueues so progress resumes cleanly on the next worker.
+
+# IO
+
+Sometimes the slow part is not “my Ruby loop”—it is **one stubborn `read` or `write`**. This strategy times the **syscall-shaped work**, not the whole block by magic.
+
+**Mental model:** you set a kitchen timer on the *one dish* on the stove, not on the entire dinner party.
+
+## Quick example
+
+```ruby
+TIMEx::Strategies::IO.read(socket, 4096, deadline: 2.0)
+TIMEx::Strategies::IO.write(socket, buffer, deadline: 2.0)
+sock = TIMEx::Strategies::IO.connect("example.com", 443, deadline: 2.0)
+# `connect` already sets SO_RCVTIMEO/SO_SNDTIMEO from the deadline.
+# Pass `apply_timeouts: false` to opt out, or call this helper yourself
+# to refresh the kernel timeouts after a long pause:
+TIMEx::Strategies::IO.apply_socket_timeouts(sock, deadline: 2.0)
+```
+
+Under the hood: **`IO.select`** plus **`read_nonblock`** / **`write_nonblock`**. When time is up you get **`TIMEx::Expired`** with **`strategy: :io`** and the original **`deadline_ms`** baked into the error—handy for logs.
+
+## At a glance
+
+| Topic                    | Plain English                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| CPU-heavy Ruby           | Not this tool’s job—use [Cooperative](https://drexed.github.io/timex/strategies/cooperative/index.md) and `check!`. |
+| Blocking IO              | Yes: the operation can bail with a clean timeout story.                                                             |
+| Mutexes and shared state | Safer than yanking threads: you get errno-style flow, not surprise `raise`.                                         |
+| Runs everywhere          | Plain MRI—no fork, no Ractors.                                                                                      |
+| How tight the timeout is | Roughly microsecond-scale scheduling around the poll loop.                                                          |
+| Nesting                  | Compose deadlines with **`min`** when you stack limits.                                                             |
+
+## When *not* to use this exact helper
+
+If you live on **Async / Falcon**, the fiber scheduler already cooperates with `read` / `write` / `IO.select`. Let the scheduler handle wait time and use `Cooperative` (or a future companion gem like `timex-async`) so you are not fighting the runtime twice.
+
+## Real-world: outbound webhook with one shared budget
+
+A webhook fan-out has to **connect, send, and read an ack** under one deadline. Splitting the budget by syscall keeps a slow TLS handshake from eating all of read time, and `connect` automatically applies SO_RCVTIMEO / SO_SNDTIMEO so the kernel honors the same number—no half-open socket trick keeps us blocked past the budget:
+
+```ruby
+def deliver_webhook(endpoint, payload, deadline:)
+  uri = URI(endpoint)
+  TIMEx.deadline(deadline) do |d|
+    sock = TIMEx::Strategies::IO.connect(uri.host, uri.port, deadline: d)
+    TIMEx::Strategies::IO.write(sock, http_request(uri, payload), deadline: d)
+    TIMEx::Strategies::IO.read(sock, 4096, deadline: d)
+  ensure
+    sock&.close
+  end
+end
+```
+
+If the receiver is flaky, you get `TIMEx::Expired` with **`strategy: :io`** and the original budget in the log line—much friendlier than `Net::HTTP`’s opaque `Net::OpenTimeout`/`ReadTimeout` split.
+
+# Wakeup
+
+You already have an **`IO.select`** loop juggling real sockets. **Wakeup** hands you an extra pipe—backed by a **`CancellationToken`**—so the select set can also react when **your deadline fires**, not only when bytes arrive.
+
+**Mental model:** add a tiny doorbell next to the mailbox. Mail still matters, but now “time’s up” rings too.
+
+## Quick example
+
+```ruby
+wake = TIMEx::Strategies::Wakeup.new(2.0)
+begin
+  ready, = ::IO.select([sock, wake.read_io], nil, nil)
+  if ready.include?(wake.read_io)
+    # deadline fired—handle cancellation gracefully
+  end
+ensure
+  wake.close
+end
+```
+
+Each `Wakeup` is **single-use**: always `close` in an `ensure` block, and build a fresh instance for the next operation. The pipe and watcher thread leak if you forget.
+
+## At a glance
+
+| Topic                       | Plain English                                                            |
+| --------------------------- | ------------------------------------------------------------------------ |
+| CPU-heavy Ruby              | Does **not** interrupt tight loops—you still need checkpoints elsewhere. |
+| Blocking IO inside `select` | Yes: **`select` returns** when the wakeup side is readable.              |
+| Mutexes / shared state      | Gentle pattern: you choose what happens after `select` wakes.            |
+| Runs everywhere             | Plain MRI.                                                               |
+| How tight the timeout is    | Millisecond-ish in practice.                                             |
+| Cost                        | One **pipe** plus a small **watcher thread** doing the bookkeeping.      |
+
+## Manual “ring the bell”
+
+```ruby
+wake.cancel!(reason: :user_aborted)
+wake.fired?  # => true
+```
+
+Use this when **you** want to abort early—user clicked cancel, upstream told you to stop, etc.
+
+## Real-world: long-poll endpoint that returns 204 instead of hanging
+
+A mobile client long-polls `/inbox/wait` for up to 25 s. You subscribe to a Redis pub/sub channel and want `select` to wake on **either** a new message **or** the deadline—never both clients sitting on dead sockets:
+
+```ruby
+get "/inbox/wait" do
+  sub = redis.subscribe_socket("inbox:#{current_user.id}")
+  wake = TIMEx::Strategies::Wakeup.new(25.0)
+  begin
+    ready, = ::IO.select([sub, wake.read_io], nil, nil)
+    if ready.include?(wake.read_io)
+      halt 204
+    else
+      [200, { "Content-Type" => "application/json" }, [sub.read_message]]
+    end
+  ensure
+    wake.close
+    sub.close
+  end
+end
+```
+
+No per-request thread killing, no `Timeout.timeout` wrapping a Redis read—the kernel’s own `select` handles the wait and the doorbell rings on schedule.
+
+# Closeable
+
+Some blocking calls only wake up when their **handle dies**. **Closeable** wraps a resource (socket, DB connection, anything with a **`close`** that interrupts the read) and, on expiry, **closes it** so the blocked syscall returns with a normal IO error—no `Thread#raise` required.
+
+**Mental model:** instead of shaking someone awake, you gently turn off the lamp they were staring at. The room handles the interrupt for you.
+
+## Quick example
+
+```ruby
+TIMEx::Strategies::Closeable.new(resource: socket).call(deadline: 2.0) do |io, d|
+  io.read(1024)
+end
+```
+
+After a timeout-driven close, treat that handle as **toast**—do not put it back in a pool unless your pool knows how to vet dead connections.
+
+## At a glance
+
+| Topic                  | Plain English                                                     |
+| ---------------------- | ----------------------------------------------------------------- |
+| CPU-heavy Ruby         | Not the target—still need checkpoints for pure Ruby loops.        |
+| Blocking IO            | Yes: closing wakes many blocking reads/writes cleanly.            |
+| Mutexes / shared state | Safer than async exceptions: you get predictable IO errors.       |
+| C extensions           | Often works when the ext is just wrapping a real fd.              |
+| Side effect            | The resource is **closed**—plan on opening a fresh one next time. |
+
+## When it fits
+
+- Connections you would **throw away** on timeout anyway.
+- Pooled resources—pair with **`pool.remove(conn)`** (or your pool’s equivalent) in `ensure` so zombies never re-enter rotation.
+
+## Real-world: a stuck Postgres query in a Rails request
+
+You ran the perfect plan in dev; in prod the same query sometimes pins a connection for minutes behind a missing index. **Closeable** closes the raw socket so the blocked `PG::Connection#exec` returns with `PG::ConnectionBad` instead of holding the request hostage, and you discard the connection so the pool refills with a healthy one:
+
+```ruby
+def find_with_deadline(sql, deadline:)
+  ActiveRecord::Base.connection_pool.with_connection do |conn|
+    socket = conn.raw_connection.socket_io
+    TIMEx::Strategies::Closeable.new(resource: socket).call(deadline: deadline) do |_io, _d|
+      conn.exec_query(sql)
+    end
+  rescue PG::ConnectionBad
+    ActiveRecord::Base.connection_pool.remove(conn)
+    raise TIMEx::Expired.new("postgres query exceeded deadline", strategy: :closeable)
+  end
+end
+```
+
+The runaway query stops eating CPU on the database, the pool stays healthy, and the controller gets a normal exception instead of a 30-second hang.
+
+# Subprocess
+
+Need a **hard stop** on work you did not write—C extensions, wild plugins, “who knows what this gem does”? Fork a child, run the scary block there, and if time runs out send **SIGTERM**, then **SIGKILL** after **`kill_after`** (default half a second).
+
+**Mental model:** you rent a disposable workshop for one job. If the job goes sideways, you torch the lease—not your living room.
+
+## Quick example
+
+```ruby
+TIMEx.deadline(2.0, strategy: :subprocess) { c_extension_call }
+```
+
+The child’s return value is **`Marshal`**’d back through a pipe. Parent and child are different processes—**no shared memory** after the fork.
+
+## At a glance
+
+| Topic                     | Plain English                                                      |
+| ------------------------- | ------------------------------------------------------------------ |
+| CPU-heavy work            | Yes—**hard kill** when the deadline wins.                          |
+| Blocking IO               | Yes—the whole child goes away.                                     |
+| Mutexes / shared state    | Safe in the parent: the risky work never touched parent locks.     |
+| Where it runs             | **Unix** only today—no `fork` on Windows or JRuby.                 |
+| How chunky the timeout is | Millisecond-ish; expect **~10–50 ms** startup tax per fresh fork.  |
+| Return values             | Must be **`Marshal`**-able (or push results through fds yourself). |
+
+## Caveats (read once, sleep well)
+
+- **Marshal** means “simple data out.” Fancy live objects usually need a different design.
+- DB pools, sockets, threads: whatever existed **before** the fork is copied in a weird sibling state. **Reconnect and reopen** inside the child block if you touch the network.
+
+## Roadmap note
+
+A **pre-forked pool** to dodge per-call fork cost is on the wish list. For early releases, each call spins up a **new** child—plan capacity accordingly.
+
+## Real-world: ImageMagick conversion that occasionally wedges
+
+User-uploaded SVGs sometimes drive **`mini_magick`** (and the underlying ImageMagick C ext) into a CPU spin or a memory blow-up. Cooperative `check!` cannot reach inside the C call—but a child process can be killed by the OS:
+
+```ruby
+def thumbnail_for(blob_path, deadline: 10.0)
+  TIMEx.deadline(deadline, strategy: :subprocess, kill_after: 1.0) do
+    image = MiniMagick::Image.open(blob_path)
+    image.resize "256x256"
+    image.format "png"
+    image.to_blob # Marshalled back through the pipe
+  end
+rescue TIMEx::Expired
+  PlaceholderImage.png_bytes
+end
+```
+
+The Sidekiq worker slot comes back even when ImageMagick refuses to. Just remember: the child does not share your DB pool—`to_blob` is fine because it returns plain bytes, but anything you want back must be `Marshal`-able.
+
+# Ractor
+
+Give TIMEx a **pure-ish CPU chunk**, ship it to a **Ractor**, and wait—up to your deadline—for an answer. If the clock wins first, TIMEx **walks away**: the Ractor keeps chewing in the background and its result is **dropped**.
+
+**Mental model:** texting a friend for trivia at a bar quiz. If they reply before last call, great. If not, you guess yourself—they might still text you later, but you are not waiting at the door.
+
+## Quick example
+
+```ruby
+TIMEx.deadline(2.0, strategy: :ractor) { pure_function(input) }
+```
+
+Keep the block **shareable** and side-effect light—Ractors still have sharp edges in Ruby.
+
+## At a glance
+
+| Topic                  | Plain English                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| CPU-heavy work         | **No hard stop** inside the Ractor if you time out—the work may finish anyway.                              |
+| Blocking IO            | Same story: you stopped waiting, not the syscall.                                                           |
+| Mutexes / shared state | Safer than threads for isolation—Ractors do not share mutable soup by default.                              |
+| Ruby version           | Same baseline as the gem (**3.3+** today). Ractors remain **experimental** in MRI—ship with extra paranoia. |
+
+## When this actually helps
+
+- Optional **speculative compute** (prefetch, warm cache) where losing the result is fine because another code path covers you.
+- CPU-only **embarrassingly parallel** helpers that never touch the outside world.
+
+## When to pick something else
+
+If you **must reclaim CPU** when time is up, use **[Subprocess](https://drexed.github.io/timex/strategies/subprocess/index.md)** so the OS can actually evict the work.
+
+## Real-world: speculative cache warm on a product page
+
+The product page already has the data it needs from Postgres. While the template renders, you would *like* to pre-decode a related-products JSON blob into the cache—but only if it finishes in under 50 ms. Past that, the page ships without it and the next request can warm the cache itself:
+
+```ruby
+def related_products_warm!(product_id, blob)
+  TIMEx.deadline(0.05, strategy: :ractor, on_timeout: :return_nil) do
+    parsed = JSON.parse(blob, symbolize_names: true)
+    Rails.cache.write("related:#{product_id}", parsed, expires_in: 5.minutes)
+    parsed
+  end
+end
+```
+
+If 50 ms is not enough this time, the ractor keeps parsing in the background (telemetry emits `ractor.leak`) and your request returns `nil` instead of waiting—exactly the trade-off speculative work is supposed to make.
+
+# Unsafe
+
+Seriously—read this twice
+
+**`Unsafe`** uses **`Thread#raise`** to inject **`TIMEx::Expired`** at whatever moment Ruby next checks for async exceptions. That can leave mutexes half-locked, buffers half-written, and file handles dangling. It is the same bargain as stdlib **`Timeout`**—fast, familiar, and sharp enough to cut you.
+
+## Quick example
+
+```ruby
+TIMEx.deadline(2.0, strategy: :unsafe) { legacy_block }
+```
+
+You get a timeout without rewriting the loop. You also accept the corruption lottery if the interrupted code was not written for this.
+
+## At a glance
+
+| Topic                    | Plain English                                                               |
+| ------------------------ | --------------------------------------------------------------------------- |
+| CPU-heavy work           | Often yes—next interrupt check can be “soon-ish.”                           |
+| Blocking IO              | **Maybe**—depends on whether the C extension cooperates with thread raises. |
+| Mutexes / shared state   | **No**—assume the worst.                                                    |
+| Runs everywhere          | Yes—no fork required.                                                       |
+| How tight the timeout is | Millisecond-ish, but *where* it lands is not your call.                     |
+
+## The one respectable job for `Unsafe`
+
+Almost never the first tool. The grown-up pattern is **[TwoPhase](https://drexed.github.io/timex/composers/two_phase/index.md)**: be nice with **[Cooperative](https://drexed.github.io/timex/strategies/cooperative/index.md)** first, then **`Unsafe`** only after a grace window when soft cancellation cannot reach the work **and** you decide a wedged process is worse than a risky interrupt.
+
+```ruby
+TIMEx::Composers::TwoPhase.new(
+  soft: :cooperative, hard: :unsafe, grace: 0.5, hard_deadline: 1.0,
+  idempotent: true
+).call(deadline: 2.0) { work }
+```
+
+Untrusted code? **[Subprocess](https://drexed.github.io/timex/strategies/subprocess/index.md)**. Full stop.
+# Composers
+
+# TwoPhase
+
+Sometimes you want the polite timeout first—*please exit at the deadline*—and a louder option only if the code ignores you. **TwoPhase** does exactly that: it runs a **soft** strategy (usually cooperative `check!`), gives you a **grace** window past the primary deadline, then escalates to a **hard** strategy if the soft path is still stuck.
+
+**Mental model:** “ask nicely, then send the bouncer.” Good for legacy blocks where you hope for a clean finish but still need a kill switch.
+
+**Non‑negotiable:** pass **`idempotent: true`**. On escalation TIMEx **`Thread#kill`s** the soft worker and runs your block **again** under the hard strategy—the constructor raises if you skip that handshake.
+
+## What it does
+
+1. **Soft phase** — your block runs under the outer `deadline:` you pass to `#deadline` (same as a normal `TIMEx.deadline`).
+1. **Grace** — TIMEx waits the soft phase's initial budget plus **`grace`** seconds for the worker thread to finish (when the outer deadline is finite; infinite outer deadlines wait forever for the soft phase). If it returns in time, you are done; life is good.
+1. **Hard phase** — if soft work overruns that window, the soft worker is **`kill`ed** and the **hard** strategy runs the **same block** again under **`Deadline.in(hard_deadline).min(outer_deadline)`** so escalation never extends the caller’s budget.
+
+Pick **soft** and **hard** like stair steps: cooperative first, subprocess or unsafe only if you accept the sharper edges.
+
+## Quick example
+
+```ruby
+TIMEx::Composers::TwoPhase.new(
+  soft: :cooperative,   # tries clean exit via check!
+  hard: :subprocess,    # OS-level backstop if soft is wedged
+  grace: 0.5,
+  hard_deadline: 1.0,
+  idempotent: true      # required — block may run twice
+).call(deadline: 2.0) { work }
+```
+
+## Real-world: preview pipeline with a hard kill
+
+A document preview job first tries to exit cleanly (cooperative `check!` around Ruby steps), but if a native renderer wedges, you still need the worker slot back. **`idempotent: true`** fits when “run preview again” just overwrites a temp file or cache key:
+
+```ruby
+TIMEx::Composers::TwoPhase.new(
+  soft: :cooperative,
+  hard: :subprocess,
+  grace: 1.0,
+  hard_deadline: 5.0,
+  idempotent: true
+).call(deadline: 15.0) { generate_pdf_preview!(input_path) }
+```
+
+Tune `grace` / `hard_deadline` to your P99 soft time plus how long the OS-level child is allowed to burn before you give up entirely.
+
+## Picking soft + hard (cheat sheet)
+
+| Situation                            | Soft           | Hard                               |
+| ------------------------------------ | -------------- | ---------------------------------- |
+| Greenfield Ruby you can edit         | `:cooperative` | `:subprocess`                      |
+| Legacy you cannot touch today        | `:unsafe`      | `:subprocess`                      |
+| Tests where forks are annoying       | `:cooperative` | `:unsafe`                          |
+| Rack handler in a short-lived worker | `:cooperative` | `:unsafe` (process rotates anyway) |
+
+If your soft block might **`rescue Exception`**, read [Cooperative](https://drexed.github.io/timex/strategies/cooperative/index.md)—that pattern can swallow cooperative expiry, which is exactly why TwoPhase exists.
+
+## Telemetry
+
+TwoPhase emits **`composer.two_phase`** so you can see how often you needed the bouncer. Payload includes **`outcome:`**
+
+| Outcome         | Meaning                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:ok`           | Soft phase finished in time—hard never ran.                                                                                                                                 |
+| `:soft_timeout` | Soft strategy raised `TIMEx::Expired` (time really ran out in the polite phase).                                                                                            |
+| `:error`        | Your block raised a normal error during the soft phase—TIMEx records it, then re-raises.                                                                                    |
+| `:hard_timeout` | Soft work blew past **grace**, the hard phase ran, **and** it still hit `TIMEx::Expired`—time to dig into C extensions, `rescue Exception`, or a too-tight `hard_deadline`. |
+
+Full event wiring lives in [Telemetry](https://drexed.github.io/timex/telemetry/index.md).
+
+# Hedged
+
+Tail latency is the ghost that makes dashboards look fine while a few users wait forever. **Hedged** fights back the simple way: start one attempt, wait a beat, fire another copy if nobody answered yet, and let the **first success** win—like hailing two taxis when you are late for a flight.
+
+**Mental model:** parallel duplicate work under one shared deadline. That means extra load on the downstream service and it only makes sense when doing the same call twice (or thrice) is safe.
+
+## What it does
+
+1. Launch attempt **1** under your `deadline:`.
+1. If nothing finishes within **`after`** seconds, launch attempt **2**, and so on, up to **`max`** threads.
+1. First happy result wins; TIMEx cancels the stragglers.
+1. If every attempt times out or blows up, you get the same timeout / error story as any other strategy (controlled by `on_timeout:`).
+
+## Quick example
+
+```ruby
+TIMEx::Composers::Hedged.new(
+  after: 0.2,
+  max: 3,
+  child: :cooperative,
+  idempotent: true   # required — read below
+).call(deadline: 1.0) { rpc.call }
+```
+
+**Heads-up:** `max` defaults to **2** if you omit it—enough for one backup, not a stampede.
+
+## Trade-offs (no sugar coating)
+
+| Question                         | Answer                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| Does it hide slow p99 tails?     | Usually yes—that is the point.                                           |
+| Worst-case extra traffic         | Up to **`max`** copies of the same call in flight at once.               |
+| Safe for “charge my card” POSTs? | Only if the server is truly idempotent—otherwise you might charge twice. |
+
+## Why `idempotent: true` is mandatory
+
+Hedged literally runs your block in more than one thread. If the block is not safe to repeat—think “insert row,” “send email,” “decrement inventory”—you will feel that in production.
+
+TIMEx **refuses** to build a `Hedged` composer unless you pass `idempotent: true`. That is not bureaucracy; it is a bright yellow sticker that says *I know duplicate executions are OK here.*
+
+## Real-world: read from the fastest replica
+
+Read-heavy services sometimes issue the **same** idempotent `GET` (or a read-only SQL) against two replicas and take whichever answers first—classic tail-latency shaving when duplicates are cheap and the database dedupes by snapshot isolation:
+
+```ruby
+TIMEx::Composers::Hedged.new(
+  after: 0.05,
+  max: 2,
+  child: :cooperative,
+  idempotent: true
+).call(deadline: 0.5) do
+  replica = rand < 0.5 ? :east : :west
+  fetch_user_snapshot(replica: replica, id: id) # your idempotent GET / read replica
+end
+```
+
+Only do this when the downstream is explicitly OK with double reads (caches, materialized views, idempotent GET semantics). Never hedge “debit account” unless the API is designed for it.
+
+# Adaptive
+
+You *could* guess a fixed timeout for every RPC and hope it fits slow days and fast days alike—or you can let **Adaptive** learn from recent runs and pick a budget that stretches when the service is healthy and tightens when it is not.
+
+**Mental model:** a tiny notebook of “how long did the last N calls take?” TIMEx turns that guess into a fresh `Deadline`, runs your nested strategy, then writes down how long reality took so the next call can do better.
+
+## What it does
+
+1. Ask the **history** object for an estimated latency (milliseconds).
+1. Multiply, clamp between **floor** and **ceiling**, and build an adaptive deadline from that.
+1. If you also pass an outer `deadline:` to `#call`, TIMEx takes the **tighter** of the two—your cap always wins when you need a hard stop.
+1. After the child strategy finishes, record the observed duration so the next estimate improves.
+
+**Cold start:** when there is no history yet, the adaptive budget is the **ceiling** (generous first guess). Once samples exist, estimates kick in.
+
+## Quick example
+
+```ruby
+adaptive = TIMEx::Composers::Adaptive.new(
+  child:      :cooperative,
+  multiplier: 1.5,
+  floor_ms:   25,
+  ceiling_ms: 30_000
+)
+
+adaptive.call { rpc.call }
+```
+
+## Knobs (the ones you will actually touch)
+
+| Knob          | Plain English                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `child:`      | The real strategy that runs your block—usually `:cooperative` or whatever you already trust.   |
+| `multiplier:` | Headroom on top of the estimate (1.5× means “give it half again as long as the model thinks”). |
+| `floor_ms:`   | Never go shorter than this—protects you from absurdly tiny budgets when samples look instant.  |
+| `ceiling_ms:` | Never go longer than this—and also the first-run budget before any samples exist.              |
+| `history:`    | Optional store; defaults to an in-memory sliding window (see below).                           |
+
+## Default history (in memory)
+
+Out of the box, **`InMemoryStore`** implements a streaming **P² quantile estimator** (~p99 by default), blends in an **EWMA** safety margin, and publishes a lock-free **`estimate_ms`** after each **`record`**. Tune **`window:`** (how many samples before marker reset) and **`alpha:`** (EWMA smoothing).
+
+If you need Redis, Postgres, or another shared store so every process agrees on latency, plug in your own object.
+
+## Custom history store
+
+Your store only needs two methods:
+
+- **`record(ms)`** — called after each run with observed latency in milliseconds.
+- **`estimate_ms`** — returns a single number in milliseconds, or **`nil`** if you have no opinion yet (Adaptive will use the ceiling until data shows up).
+
+```ruby
+class RedisHistory
+  def initialize(client, key:, window:)
+    @c, @k, @w = client, key, window
+  end
+
+  def record(ms)
+    @c.lpush(@k, ms)
+    @c.ltrim(@k, 0, @w - 1)
+  end
+
+  def estimate_ms
+    samples = @c.lrange(@k, 0, -1).map(&:to_f).sort
+    return nil if samples.empty?
+
+    samples[((samples.size - 1) * 0.99).round]
+  end
+end
+
+TIMEx::Composers::Adaptive.new(child: :cooperative, history: RedisHistory.new(...))
+```
+
+## Telemetry
+
+Adaptive emits **`composer.adaptive`** with `estimate_ms`, `budget_ms`, `deadline_ms` (post-clamp), `elapsed_ms`, and `outcome`. Pair with a logger or OTel adapter and you get a clean record of how the budget shrank or grew over time. See [Telemetry](https://drexed.github.io/timex/telemetry/index.md).
+
+## Real-world: per-tenant Elasticsearch search
+
+Tenant A’s `search` index lives in a few hundred docs and returns in 30 ms. Tenant B is a 50-million-doc beast that needs 1.5 s on a good day. A fixed timeout either starves A or paints B as “broken.” Keying the history store by tenant lets Adaptive learn one budget per tenant from real traffic:
+
+```ruby
+SEARCH_HISTORIES = Concurrent::Map.new { |h, k| h[k] = TIMEx::Composers::Adaptive::InMemoryStore.new }
+
+def tenant_search(tenant_id:, query:, outer_deadline:)
+  adaptive = TIMEx::Composers::Adaptive.new(
+    child:      :cooperative,
+    multiplier: 1.5,
+    floor_ms:   50,
+    ceiling_ms: 2_000,
+    history:    SEARCH_HISTORIES[tenant_id]
+  )
+  adaptive.call(deadline: outer_deadline) { Search::Client.query(tenant_id, query) }
+end
+```
+
+Quiet tenants get tight budgets that fail fast when something is wrong; loud tenants get the headroom they actually need—no per-tenant config file to keep in sync with reality.
+# Propagation
+
+# HTTP header propagation
+
+Your browser (or service A) decides: *“I will wait at most two seconds for this whole adventure.”* **HTTP header propagation** is how that decision hops onto the next HTTP call so service B does not keep grinding after the caller already gave up. One budget, many hops—less wasted work downstream.
+
+Think of **`X-TIMEx-Deadline`** as a sticky note on the request: “share this `Deadline` with everyone downstream.” TIMEx knows how to read it, write it, and watch the clock when wall time and local time disagree a little.
+
+## Why a header?
+
+Without a shared signal, every microservice invents its own timeout. You end up with five nested timers that do not talk to each other. A header keeps the story linear: **one remaining budget** travels with the request.
+
+## Wire format
+
+```text
+X-TIMEx-Deadline: ms=1837;origin=svcA;depth=2
+X-TIMEx-Deadline: wall=2026-05-12T19:01:00.123Z;origin=svcA
+```
+
+| Piece          | Plain English                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `ms=N`         | Milliseconds left, anchored on **monotonic** time—great inside one data center.                                              |
+| `wall=ISO8601` | Absolute stop time on the wall clock—handy when boxes are loosely synced and you still want a shared “stop at this instant.” |
+| `origin=name`  | Optional label for who started the budget (handy in logs).                                                                   |
+| `depth=N`      | How many hops this budget has traveled; TIMEx bumps it when you propagate again.                                             |
+
+More on building and reading `Deadline` values: [Deadline](https://drexed.github.io/timex/basics/deadline/index.md).
+
+## Server side (Rack)
+
+Most apps use [Rack middleware](https://drexed.github.io/timex/propagation/rack/index.md) so every request automatically parses the header. If you are wiring something custom, the parsed value also lives under `TIMEx::Propagation::RackMiddleware::ENV_KEY` (`"timex.deadline"`).
+
+```ruby
+use TIMEx::Propagation::RackMiddleware
+
+# Later, for example in a controller:
+deadline = request.env["timex.deadline"]
+TIMEx.deadline(deadline) { call_downstream(deadline) }
+```
+
+## Client side (outgoing calls)
+
+Build a header map, **inject** the deadline, send the request—no magic.
+
+```ruby
+headers = {}
+TIMEx::Propagation::HttpHeader.inject(headers, deadline)
+http.get(url, headers)
+```
+
+**`prefer:`** — same knob as `Deadline#to_header`. Default is `:remaining` (`ms=…`). Pass `prefer: :wall` when you want a wall-clock header instead.
+
+If you already have a string-keyed header hash from another client library, you can parse it with `TIMEx::Propagation::HttpHeader.from_headers(headers)`.
+
+## Real-world: gateway → auth → inventory
+
+Picture an API gateway that gives each request a 2.5 s end-to-end budget. It parses or creates a `Deadline`, forwards the header to an auth service, then to inventory—each hop reads the same remaining slice instead of starting a fresh 2.5 s timer per HTTP call:
+
+```ruby
+# Gateway: attach shared budget to every downstream Net::HTTP / Faraday call
+headers = { "Authorization" => "Bearer …" }
+TIMEx::Propagation::HttpHeader.inject(headers, deadline)
+auth_response = http.post("/auth/verify", body, headers)
+
+TIMEx::Propagation::HttpHeader.inject(headers, deadline) # same object, less ms left
+stock_response = http.get("/inventory/sku/#{sku}", headers)
+```
+
+If the client already sent `X-TIMEx-Deadline`, parse it with `Deadline.from_header` first and **`min`** it with your gateway ceiling so neither side over-promises.
+
+## Skew guard (wall clock)
+
+When the header uses `wall=`, TIMEx compares the sender’s idea of “now” to yours. If the gap is bigger than **`skew_tolerance_ms`** (default **250** in [Configuration](https://drexed.github.io/timex/configuration/index.md)), TIMEx emits a **`deadline.skew_detected`** telemetry event so you can spot bad NTP, drunk laptops, or hostile clocks before users do.
+
+# Rack middleware
+
+[Rack](https://rack.github.io/) is Ruby’s tiny contract between web servers and apps: one `call(env)` method, one response tuple. **`TIMEx::Propagation::RackMiddleware`** slides into that stack so every request can **carry a deadline in** and, when you ask for it, **echo remaining time on the way out**—without each controller re-parsing headers by hand.
+
+**Mental model:** the middleware is the bouncer at the door. It reads the sticky note on the request ([`X-TIMEx-Deadline`](https://drexed.github.io/timex/propagation/http_header/index.md)), decides if you are already too late to enter, and if not it hands the `Deadline` to the rest of your app via `env`.
+
+**Trust boundary:** the inbound header is untrusted on the public internet—pair `max_seconds:` / `max_depth:` with network controls the way you would any other user-supplied budget knob.
+
+## Drop-in setup
+
+```ruby
+# config.ru
+require "timex"
+use TIMEx::Propagation::RackMiddleware,
+    default_seconds: 30,
+    max_seconds: 30,          # clamp untrusted inbound budgets (do this on public edges)
+    max_depth: 8,             # reject runaway hop counts
+    expose_remaining: true    # echo X-TIMEx-Remaining-Ms on success responses
+run MyApp
+```
+
+**`default_seconds:`** — optional. When the client sends **no** header, TIMEx creates a fresh budget of that many seconds so `env["timex.deadline"]` is still set. Omit it if you only want deadlines when callers opt in.
+
+**`header_case:`** — `:rack3` (default, lower-case response keys) or `:canonical` (`X-TIMEx-…`) for older stacks that expect mixed-case headers.
+
+**`clamp_infinite_to_default:`** — when `true` **and** `default_seconds` is set, an inbound `ms=inf` header is replaced with the default budget instead of being honored. Pair with `max_seconds:` on public edges so a misconfigured (or hostile) caller cannot opt out of your timeout policy.
+
+## What it does (step by step)
+
+1. **Read** `X-TIMEx-Deadline` from the Rack env (Rack exposes it as `HTTP_X_TIMEX_DEADLINE`).
+1. **Store** the resulting `Deadline` at **`env["timex.deadline"]`** when one exists—or build one from `default_seconds` when you configured that.
+1. **Short-circuit** if the deadline is already expired: respond **`503 Service Unavailable`**, plain body, and header **`X-TIMEx-Outcome: expired-on-arrival`** so load balancers and clients can tell “late” from “bug.”
+1. **Otherwise** run your app.
+1. **Response headers** — enable **`expose_remaining: true`** to add **`X-TIMEx-Remaining-Ms`** (Rack 3 lower-case key by default) so clients see how much budget is left after your work. Outcome headers on **`503`** always include **`X-TIMEx-Outcome`** (or canonical casing—see below).
+
+| Step              | Plain English                                                                    |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Parse header      | Turn the wire string into a real `Deadline` (or `nil` if missing / junk).        |
+| Attach to `env`   | Controllers and downstream code read `request.env["timex.deadline"]` in Rails.   |
+| `503` on arrival  | Do not burn CPU on a request the caller already abandoned.                       |
+| Remaining on exit | Opt-in via **`expose_remaining:`**—off by default so you do not surprise caches. |
+
+## Using the deadline downstream
+
+Once the middleware ran, treat `env["timex.deadline"]` like any other `Deadline`: tighten with **`min`**, call **`check!`** in loops you own, pass it into HTTP clients with [`HttpHeader.inject`](https://drexed.github.io/timex/propagation/http_header/index.md).
+
+```ruby
+class WidgetsController < ApplicationController
+  def show
+    deadline = request.env["timex.deadline"] || TIMEx::Deadline.in(2.0)
+
+    TIMEx.deadline(deadline) do |d|
+      @widget = Widget.find_with_deadline(params[:id], deadline: d.min(0.5))
+    end
+  end
+end
+```
+
+The `|| TIMEx::Deadline.in(2.0)` line is a local safety net when no header and no `default_seconds` were provided—tweak to match your product rules.
+
+## Real-world: one deadline, every Rails layer
+
+In a real Rails app the controller, model, and any inline jobs all want the same budget without re-parsing headers. Stash it on **`Current`** in a `before_action`, and every layer reads the same object:
+
+```ruby
+class Current < ActiveSupport::CurrentAttributes
+  attribute :deadline
+end
+
+class ApplicationController < ActionController::Base
+  before_action :attach_deadline
+
+  private
+
+  def attach_deadline
+    Current.deadline = request.env["timex.deadline"] || TIMEx::Deadline.in(2.0)
+  end
+end
+
+class Order < ApplicationRecord
+  def self.for_dashboard
+    TIMEx.deadline(Current.deadline) do |d|
+      includes(:line_items).where(state: :open).find_each(batch_size: 100) { |o| d.check!; yield o }
+    end
+  end
+end
+```
+
+The header set by an upstream gateway flows through the controller, into the model loop, and out to any HTTP client via [`HttpHeader.inject`](https://drexed.github.io/timex/propagation/http_header/index.md)—one budget, no surprises.
+# Guides
+
+# Internals
+
+This page is for anyone who likes knowing *where the levers are*. You do not need it to ship a feature—but after you read it, stack traces from TIMEx should feel less mysterious.
+
+## How the pieces connect
+
+Think of **`TIMEx.deadline`** (and friends) as a host at a restaurant: it looks up your reservation in the **strategy registry**, seats you with the right **strategy**, and keeps an eye on the **`Deadline`** while you eat. Telemetry and propagation helpers hang out at the same party so you can observe and share budgets.
+
+```
+flowchart TB
+  Facade["TIMEx.deadline / TIMEx.deadline"]
+  Registry[Strategy Registry]
+  Facade --> Registry
+  Registry --> Coop[Cooperative]
+  Registry --> IO_[IO]
+  Registry --> Wakeup
+  Registry --> Closeable
+  Registry --> Unsafe
+  Registry --> Subprocess
+  Registry --> Ractor_[Ractor]
+  Composers["Composers (TwoPhase, Hedged, Adaptive)"]
+  Facade -. optional callable .-> Composers
+  Composers --> Deadline
+  Coop --> Deadline
+  IO_ --> Deadline
+  Deadline --> Clock
+  Facade --> Telemetry
+  Propagation[Propagation: header / Rack] --> Deadline
+```
+
+**Plain-English tour:**
+
+- **Facade** — `TIMEx.deadline`, `TIMEx.deadline` delegate to whatever strategy you pass in, or—when you omit it—to the configured default from the registry.
+- **Registry** — maps symbols like `:cooperative` to real strategy classes; also holds hooks like `default_selector` for companion gems. Built-in composers are **not** registered by default—you `.new` them (or register your own alias).
+- **Strategies** — each registered runner owns a slice of the problem (cooperative checkpoints, IO polling, subprocess isolation, …).
+- **Composers** — `TwoPhase`, `Hedged`, `Adaptive`: strategy-shaped objects that call one or more registered strategies; same `#call(deadline:, …)` surface area.
+- **Deadline + Clock** — monotonic math so “two seconds” means two seconds even if wall clocks jump.
+- **Propagation** — optional helpers that parse or emit headers so budgets cross process boundaries.
+- **Telemetry** — tells you what finished, how, and how long it took.
+- **Result** — when you opt into `on_timeout: :result`, you get back a frozen `TIMEx::Result` (`:ok` / `:timeout` / `:error`) instead of an exception. Pattern match on it or call `value!` to re-raise—handy for service objects that prefer Either-shaped returns.
+
+## What a strategy must do
+
+Most custom strategies subclass **`TIMEx::Strategies::Base`** and implement `run`:
+
+```ruby
+class MyStrategy < TIMEx::Strategies::Base
+  protected
+
+  def run(deadline)
+    yield(deadline) # the user block
+    # ... timing / escalation logic ...
+  end
+end
+
+TIMEx::Registry.register(:my, MyStrategy)
+```
+
+**Checklist (the boring stuff that keeps production boring):**
+
+- Let **`Base`** coerce the incoming deadline with `TIMEx::Deadline.coerce`—do not hand-roll parsing unless you have a strong reason.
+- Raise **`TIMEx::Expired`** when time is truly up. It subclasses `Exception` on purpose (see below).
+- Respect **`Deadline#shield`** blocks—users can mark regions where expiry should wait.
+- Be safe to call more than once: no thread leaks, no stray file descriptors, no surprise background timers left running.
+
+## What a composer is
+
+A **composer** is anything that exposes `#call(deadline:, on_timeout:, **opts, &block)` and forwards to one or more strategies. Composers **do not** have to inherit `Base`; read `TwoPhase`, `Hedged`, and `Adaptive` as living examples of “orchestrate, do not reinvent.”
+
+## Why `Expired` is not a `StandardError`
+
+`TIMEx::Expired < Exception`, **not** `< StandardError`. That sounds picky, but it saves you from this trap:
+
+```ruby
+begin
+  TIMEx.deadline(0.01) { sleep 1 }
+rescue => e
+  # Swallows StandardError only—Expired still propagates
+end
+```
+
+So a bare `rescue => e` will **not** accidentally eat a deadline. When you really mean “catch everything including expiry,” spell it out:
+
+```ruby
+rescue StandardError, TIMEx::Expired => e
+```
+
+Prefer **`on_timeout: :raise_standard`** when you want a **`TimeoutError`** (`StandardError`) instead—handy for codebases that intentionally rescue broad `StandardError` but still need a timeout signal.
+
+Or use a **`TwoPhase`** backstop when you need cleanup *and* a harder stop after grace.
+
+## Rules of thumb
+
+- **The `Deadline` is the contract.** Strategies disagree on *how* to stop; they should agree on *when* the budget is spent.
+- **Cooperative first, violent later.** Escalate strategy by strategy instead of jumping straight to `Unsafe` because it felt fast in a spike.
+- **Compose, don’t fork-copy-paste.** If you need two behaviors, a composer plus two strategies beats one mega-class.
+- **Read telemetry when behavior surprises you.** Time bugs love to hide in nested calls and header skew.
+
+# Tips and Tricks
+
+Little habits that make TIMEx feel obvious in code review. None of these are secret features—just the stuff we reach for after the first week of wiring deadlines for real.
+
+Set the client’s own timeout first
+
+TIMEx caps how long *Ruby waits*. The HTTP client, DB driver, or RPC stub is what actually stops the IO. Always configure their native timeouts (`read_timeout`, `statement_timeout`, gRPC `deadline:`, etc.) — then wrap them in `TIMEx.deadline` to share one budget across hops.
+
+## Real-world: one checkout flow, many IO calls
+
+During payment capture you might read Redis, call a card gateway, then enqueue a receipt—all under one Rack-derived deadline. Thread **`Deadline`** through plain Ruby methods (no global timer per hop) so a slow fraud check does not leave the card client zero time:
+
+```ruby
+def capture!(deadline:)
+  fraud_client.verify!(deadline: deadline)
+  charge = gateway.capture(deadline: deadline.min(2.0))
+  enqueue_receipt(charge.id, deadline: deadline)
+end
+```
+
+## Pass the deadline down the stack
+
+```ruby
+def fetch(deadline:)
+  TIMEx::Strategies::IO.read(socket, 4096, deadline: deadline)
+end
+
+TIMEx.deadline(2.0) { |d| fetch(deadline: d) }
+```
+
+Treat **`Deadline`** like a permission slip: hand it to helpers so every layer knows how much time is left. Nested work can shrink the budget with **`Deadline#min`**:
+
+```ruby
+def call_external(deadline:)
+  TIMEx.deadline(deadline.min(0.5)) { real_call }   # never more than 500 ms here
+end
+```
+
+## Use `shield` only for cleanup
+
+```ruby
+TIMEx.deadline(1.0) do |d|
+  begin
+    work
+  ensure
+    d.shield { release_resources }
+  end
+end
+```
+
+**`shield`** says “do not cancel this tiny block for cooperative deadlines.” Perfect for releasing handles; not a hiding place for more slow work.
+
+## Let telemetry be your flight recorder
+
+Every strategy emits a finish event with **`outcome`**, **`elapsed_ms`**, **`strategy`**, and **`deadline_ms`**. Plug an adapter once—see [Telemetry](https://drexed.github.io/timex/telemetry/index.md)—and you get a straight answer to “what timed out, where, and how long did we burn?”
+
+## Test time without `sleep`
+
+```ruby
+around { |ex| TIMEx::Test.with_virtual_clock { ex.run } }
+
+it "expires" do
+  d = TIMEx::Deadline.in(1.0)
+  TIMEx::Test.advance(2.0)
+  expect(d).to be_expired
+end
+```
+
+Full tour: [Testing](https://drexed.github.io/timex/testing/index.md).
+
+## Lint the scary rescues
+
+```bash
+bin/timex-lint app lib
+```
+
+That helper nags about **`rescue Exception`** and bare **`rescue`** inside `TIMEx.deadline` blocks—patterns that swallow cooperative timeouts and pretend everything succeeded.
+
+## Useful examples
+
+End-to-end recipes for common scenarios. Each is a single-page, self-contained snippet you can copy-paste.
+
+| Recipe                                                                                                                       | Strategies / Composers   |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| [Net::HTTP request with deadline](https://github.com/drexed/timex/blob/main/examples/net_http_request.md)                    | IO, propagation          |
+| [PG query with deadline](https://github.com/drexed/timex/blob/main/examples/pg_query_with_deadline.md)                       | Closeable, IO            |
+| [Redis with deadline](https://github.com/drexed/timex/blob/main/examples/redis_with_deadline.md)                             | IO                       |
+| [Faraday middleware](https://github.com/drexed/timex/blob/main/examples/faraday_middleware.md)                               | IO, propagation          |
+| [Sidekiq job deadline](https://github.com/drexed/timex/blob/main/examples/sidekiq_job_deadline.md)                           | Cooperative, propagation |
+| [Rack request deadline](https://github.com/drexed/timex/blob/main/examples/rack_request_deadline.md)                         | RackMiddleware           |
+| [gRPC deadline propagation](https://github.com/drexed/timex/blob/main/examples/grpc_deadline_propagation.md)                 | Propagation              |
+| [CLI long-running command](https://github.com/drexed/timex/blob/main/examples/cli_long_running_command.md)                   | TwoPhase, Subprocess     |
+| [Untrusted user code](https://github.com/drexed/timex/blob/main/examples/untrusted_user_code.md)                             | Subprocess               |
+| [Hedged RPC call](https://github.com/drexed/timex/blob/main/examples/hedged_rpc_call.md)                                     | Hedged                   |
+| [Two-phase graceful shutdown](https://github.com/drexed/timex/blob/main/examples/two_phase_graceful_shutdown.md)             | TwoPhase                 |
+| [Adaptive timeout from history](https://github.com/drexed/timex/blob/main/examples/adaptive_timeout_from_history.md)         | Adaptive                 |
+| [Lease-based distributed job](https://github.com/drexed/timex/blob/main/examples/lease_distributed_job.md)                   | Lease (placeholder)      |
+| [OpenTelemetry spans](https://github.com/drexed/timex/blob/main/examples/opentelemetry_spans.md)                             | Telemetry                |
+| [ActiveSupport instrumentation](https://github.com/drexed/timex/blob/main/examples/active_support_instrumentation.md)        | Telemetry                |
+| [Migrating a legacy `Timeout.timeout`](https://github.com/drexed/timex/blob/main/examples/migrating_legacy_timeout_block.md) | Cooperative, TwoPhase    |
+
+# Testing
+
+Slow specs make everyone grumpy. TIMEx ships a **virtual clock** so you can pretend time passed instantly instead of calling `sleep` and watching CI turn gray.
+
+## TL;DR
+
+```ruby
+require "timex"
+
+RSpec.describe MyService do
+  around { |ex| TIMEx::Test.with_virtual_clock { ex.run } }
+
+  it "honors the deadline" do
+    d = TIMEx::Deadline.in(1.0)
+    TIMEx::Test.advance(2.0)
+    expect(d).to be_expired
+  end
+
+  it "does not raise inside the budget" do
+    expect {
+      TIMEx.deadline(1.0) { |d| TIMEx::Test.advance(0.5); :ok }
+    }.not_to raise_error
+  end
+end
+```
+
+Wrap the example (or suite) in **`TIMEx::Test.with_virtual_clock`**, then **`TIMEx::Test.advance(seconds)`** whenever you want “time went by” without the CPU napping. **`TIMEx::Test.freeze_time`** is an alias of `with_virtual_clock` for specs that read more naturally that way.
+
+## How the virtual clock helps (plain English)
+
+- Deadlines created under the virtual clock read from the fake timeline, not from `Time.now` every tick.
+- **`advance`** moves that timeline forward; **`be_expired`** and friends line up with what juniors expect: “we jumped past the budget, so yes, expired.”
+
+Use it for cooperative code paths, `TIMEx.deadline` blocks, and anything driven by `Deadline` math.
+
+## When you still need real wall clock
+
+Some strategies talk to the OS timer directly:
+
+- `Subprocess`
+- `Wakeup`
+- `Closeable`
+- `Unsafe`
+
+The virtual clock cannot fast-forward the kernel. For those, keep timeouts tiny (think tens of milliseconds) so specs stay quick and deterministic enough.
+
+## Telemetry in specs
+
+Want to prove a timeout fired without spelunking log files? Point TIMEx at a tiny adapter that remembers what it saw:
+
+```ruby
+class CollectingAdapter < TIMEx::Telemetry::Adapters::Base
+  attr_reader :events
+
+  def initialize
+    super()
+    @events = []
+  end
+
+  def finish(event:, payload:)
+    @events << [event, payload]
+  end
+end
+
+collector = CollectingAdapter.new
+TIMEx.configure { |c| c.telemetry_adapter = collector }
+
+TIMEx.deadline(0.001, on_timeout: :return_nil) { |d| sleep 0.05; d.check! }
+expect(collector.events).not_to be_empty
+```
+
+(You can also use Logger + `StringIO` if you prefer reading strings—see [Telemetry](https://drexed.github.io/timex/telemetry/index.md) for adapter shapes.)
+
+Remember **`TIMEx.reset_configuration!`** in an `around` hook so one example does not leak adapters into the next—same idea as [Configuration](https://drexed.github.io/timex/configuration/index.md).
+
+## Real-world: lock down the “90-second prod import” regression
+
+Ops paged you twice this month: a CSV import that should cap at 60 s occasionally took 90 s in prod and a downstream worker died. The fix was a missing `check!`—write the spec so the **next** missing `check!` fails CI instead of pager duty, all in microseconds of wall time:
+
+```ruby
+RSpec.describe ImportJob do
+  let(:collector) do
+    Class.new(TIMEx::Telemetry::Adapters::Base) do
+      attr_reader :events
+      def initialize = (super(); @events = [])
+      def finish(event:, payload:) = @events << [event, payload]
+    end.new
+  end
+
+  around do |ex|
+    TIMEx::Test.with_virtual_clock do
+      TIMEx.configure { |c| c.telemetry_adapter = collector }
+      ex.run
+      TIMEx.reset_configuration!
+    end
+  end
+
+  it "stops the import at the 60s budget instead of hanging" do
+    expect {
+      TIMEx.deadline(60.0) do |d|
+        100.times { d.check!; TIMEx::Test.advance(1.0) }
+      end
+    }.to raise_error(TIMEx::Expired)
+
+    expect(collector.events.last.last).to include(outcome: :timeout, strategy: :cooperative)
+  end
+end
+```
+
+The spec runs in roughly the time it takes to allocate the objects—no `sleep`, no flake risk—and it asserts both the behavior and the telemetry the on-call dashboard depends on.
+
+# Telemetry
+
+TIMEx does not guess whether a timeout mattered in production—it tells you. Every strategy finishes with a small event (think: “who ran, for how long, and did we finish on time?”). Your app chooses where those events go: nowhere, a logger, Active Support, OpenTelemetry, or a class you write.
+
+## TL;DR
+
+```ruby
+TIMEx.configure do |c|
+  c.telemetry_adapter = TIMEx::Telemetry::Adapters::Logger.new(Rails.logger)
+end
+```
+
+`nil` (the default) means “discard quietly” via the built-in Null adapter—fine for scripts, less fun when you are on call.
+
+## How it works (plain English)
+
+- Most work goes through **`Telemetry.instrument`**: the adapter gets **`start`** before your block, then **`finish`** after (with **`elapsed_ms`** and **`outcome`** filled in when things go sideways).
+- One-off signals use **`Telemetry.emit`**, which is implemented on **`Adapters::Base`** as “`start` then `finish`” with the same payload object.
+- **`TIMEx.configure { |c| c.telemetry_adapter = … }`** requires an object that responds to **`#emit`** (every built-in adapter subclasses **`Base`**, so you get **`start` / `finish`** for free).
+
+If you only remember one thing: **timeouts become observable data**, not a silent `raise` you hope someone logged.
+
+## Events at a glance
+
+| Event                         | Where it fires                                     | Notable payload keys                                               |
+| ----------------------------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| `strategy.call`               | Every `TIMEx.deadline` (any strategy)              | `strategy`, `deadline_ms`, `elapsed_ms`, `outcome`, `error_class`  |
+| `composer.two_phase`          | `TwoPhase#call`                                    | `soft_ms`, `grace_ms`, `soft_timeout`, `outcome`                   |
+| `composer.adaptive`           | `Adaptive#call`                                    | `estimate_ms`, `budget_ms`, `deadline_ms`, `elapsed_ms`, `outcome` |
+| `deadline.skew_detected`      | Header parsing finds wall-clock drift              | `skew_ms`, `origin`                                                |
+| `deadline.budget_clamped`     | `Deadline.in` rejected (non-finite, too big)       | `reason`, `requested_seconds`                                      |
+| `rack.deadline.rejected`      | `RackMiddleware` returns `503`                     | `reason`, `depth`, `origin`                                        |
+| `rack.deadline.unparseable`   | Inbound header was non-empty but malformed         | `bytesize`                                                         |
+| `ractor.leak`                 | `Ractor` strategy abandoned a still-running ractor | `deadline_ms`                                                      |
+| `cancellation.observer_error` | `CancellationToken` observer raised                | `error_class`                                                      |
+
+`Hedged` does not emit telemetry today (each child attempt still emits its own `strategy.call`). Treat unknown keys as optional hints—new ones may appear.
+
+## Common payload keys
+
+| Key           | Type           | Plain meaning                                                     |
+| ------------- | -------------- | ----------------------------------------------------------------- |
+| `strategy`    | Symbol         | Which strategy ran, e.g. `:cooperative`, `:subprocess`.           |
+| `deadline_ms` | Integer or nil | Budget in milliseconds; `nil` means “no fixed cap.”               |
+| `elapsed_ms`  | Float          | How long wall clock actually took (added in `finish`).            |
+| `outcome`     | Symbol         | `:ok`, `:timeout`, `:soft_timeout`, `:hard_timeout`, or `:error`. |
+| `error_class` | String         | Only on `:error` — what blew up.                                  |
+
+## Built-in adapters
+
+- **`TIMEx::Telemetry::Adapters::Null`** — default; intentionally boring.
+- **`TIMEx::Telemetry::Adapters::Logger.new(logger)`** — one INFO line per finish event; great for “turn it on in staging first.”
+- **`TIMEx::Telemetry::Adapters::ActiveSupportNotifications`** — publishes `timex.<event>` so anything already listening to AS::N can piggyback.
+- **`TIMEx::Telemetry::Adapters::OpenTelemetry`** — one span per event; marks error status when the outcome is timeout-shaped.
+
+## Roll your own
+
+Subclass **`TIMEx::Telemetry::Adapters::Base`**. Override **`finish`** (and optionally **`start`**) for spans; the default **`emit`** pairs them if you only need one-shot logging. Assign an instance in configuration:
+
+```ruby
+class StatsdAdapter < TIMEx::Telemetry::Adapters::Base
+  def initialize(client) = (@client = client)
+
+  def finish(event:, payload:)
+    @client.timing("timex.#{event}.elapsed_ms", payload[:elapsed_ms])
+    @client.increment("timex.#{event}.#{payload[:outcome]}")
+  end
+end
+
+TIMEx.configure { |c| c.telemetry_adapter = StatsdAdapter.new(STATSD) }
+```
+
+Keep `finish` cheap—this runs on the hot path after work completes.
+
+## Real-world: incident triage via Active Support Notifications
+
+It is 2 a.m. and checkout p99 is climbing. You suspect the fraud vendor, but proving it means correlating `strategy: :io` timeouts with the vendor host. Subscribe once, page when the rate spikes:
+
+```ruby
+TIMEx.configure do |c|
+  c.telemetry_adapter = TIMEx::Telemetry::Adapters::ActiveSupportNotifications.new
+end
+
+ActiveSupport::Notifications.subscribe("timex.strategy.call") do |_name, _start, _finish, _id, payload|
+  next unless payload[:outcome] == :timeout && payload[:strategy] == :io
+
+  StatsD.increment("timex.io.timeout", tags: ["host:#{payload[:host] || "unknown"}"])
+  PagerDuty.notify_throttled("io timeouts spiking: #{payload}") if Throttle.exceeded?
+end
+```
+
+Now the dashboard answers “which strategy, which host, which budget?” at a glance—the same data your `rescue TIMEx::Expired` block has, but observable across the whole fleet instead of one log line per failure.
+
+# Auto-check
+
+Sometimes you inherit a loop that never calls `deadline.check!`. You cannot rewrite it today, but you still want the thread to notice that time ran out. Auto-check is TIMEx’s opt-in safety net: it peeks at the deadline for you on a schedule, using Ruby’s `TracePoint` machinery.
+
+## TL;DR
+
+```ruby
+TIMEx.deadline(2.0, auto_check: true) { legacy_loop }
+
+# Or turn it on by default for the whole process:
+TIMEx.configure { |c| c.auto_check_default = true }
+```
+
+## How it works (plain English)
+
+TIMEx enables a `TracePoint` on the **current thread** for **`:line`** and **`:b_return`** only. After every `auto_check_interval` such events (default **1000**), it asks the deadline “are we done yet?”. If yes, it raises `Expired`—same as a manual `check!`.
+
+Why not `:c_return`? It fires on almost every C method return (`Hash#[]`, `String#+`, …). Turning that on would slow tight loops to a crawl for little extra win—so we deliberately keep the tap on Ruby-visible edges.
+
+Think of it as a polite friend tapping your shoulder every N Ruby events instead of you remembering to look at the clock.
+
+## Real-world: third-party CSV walk
+
+You dropped in `CSV.foreach` from the stdlib plus a gem that processes each row with heavy Ruby—no `check!` hooks. Wrapping the whole import buys a deadline without forking the vendor stack on day one:
+
+```ruby
+TIMEx.deadline(120.0, auto_check: true) do
+  CSV.foreach("vendor_dump.csv", headers: true) do |row|
+    LegacyRowProcessor.new(row).run   # no checkpoints inside
+  end
+end
+```
+
+Plan to delete `auto_check:` once you either add explicit `check!` calls at safe row boundaries or move the hot part to `Subprocess` / `TwoPhase`.
+
+## When to use it
+
+- Legacy code paths where sprinkling `check!` is a big refactor.
+- Short-term bridges while you move toward explicit cooperative checks.
+
+## When not to use it (and what to use instead)
+
+- **New code you control:** prefer `deadline.check!` at safe points. Auto-check is a convenience, not the house style.
+- **Long stretches inside C extensions that hold the GVL:** Ruby never gets those TracePoint callbacks. Reach for `Subprocess` or `TwoPhase` instead.
+- **Hot tight loops where every percent matters:** auto-check adds overhead (ballpark ~5% on micro-benchmarks). Bump `auto_check_interval` if you need fewer taps on the shoulder.
+
+Auto-check is also **off** inside `Deadline#shield`, so cleanup blocks can finish without surprise cancellation.

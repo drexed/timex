@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: TIMEx::Strategies::IO
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "TIMEx::Strategies::IO";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (I)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Strategies.html" title="TIMEx::Strategies (module)">Strategies</a></span></span>
+     &raquo; 
+    <span class="title">IO</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: TIMEx::Strategies::IO
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName"><span class='object_link'><a href="Base.html" title="TIMEx::Strategies::Base (class)">Base</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next"><span class='object_link'><a href="Base.html" title="TIMEx::Strategies::Base (class)">Base</a></span></li>
+          
+            <li class="next">TIMEx::Strategies::IO</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/timex/strategies/io.rb
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Deadline-aware helpers for non-blocking socket I/O and DNS resolution.</p>
+<p>The nested singleton methods implement reusable primitives; <span class='object_link'>#run</span> simply
+yields the <span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span> to the caller for custom protocols.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="Base.html" title="TIMEx::Strategies::Base (class)">Base</a></span></li>
+    
+  </ul>
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="MIN_SOCKET_TIMEOUT-constant" class="">MIN_SOCKET_TIMEOUT =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Minimum seconds passed to SO_RCVTIMEO / SO_SNDTIMEO. A packed timeval
+of zero often means &quot;disable timeout&quot; on POSIX, which would leave
+blocking reads unbounded when the remaining budget rounds to 0.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='float'>0.001</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#apply_socket_timeouts-class_method" title="apply_socket_timeouts (class method)">.<strong>apply_socket_timeouts</strong>(sock, deadline:)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Best-effort SO_RCV,SNDTIMEO setter.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#connect-class_method" title="connect (class method)">.<strong>connect</strong>(host, port, deadline:, apply_timeouts: true)  &#x21d2; ::Socket </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Resolves <code>host</code> (respecting <code>deadline</code>) and connects via the first working address family.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#read-class_method" title="read (class method)">.<strong>read</strong>(io, len, deadline:)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Reads up to <code>len</code> bytes using non-blocking reads bounded by <code>deadline</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#write-class_method" title="write (class method)">.<strong>write</strong>(io, buffer, deadline:)  &#x21d2; Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Writes the full <code>buffer</code>, retrying on <code>IO::WaitWritable</code> until done or expired.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="Base.html" title="TIMEx::Strategies::Base (class)">Base</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Base.html#call-class_method" title="TIMEx::Strategies::Base.call (method)">call</a></span>, <span class='object_link'><a href="Base.html#call-instance_method" title="TIMEx::Strategies::Base#call (method)">#call</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="apply_socket_timeouts-class_method">
+  
+    .<strong>apply_socket_timeouts</strong>(sock, deadline:)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Best-effort SO_RCV,SNDTIMEO setter. The native <code>pack</code> format for
+<code>struct timeval</code> differs by platform (64-bit POSIX uses two <code>long</code>
+fields; Windows uses <code>DWORD</code> milliseconds). When <code>SO_RCVTIMEO_FLOAT</code>
+is exposed (Darwin, some BSDs) we prefer it because the option's
+value is a raw <code>Float</code>, avoiding the packed-timeval mismatch.
+Failures are swallowed so callers can rely on <code>wait_for</code> as the
+primary deadline guard.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>sock</span>
+      
+      
+        <span class='type'>(<tt>::Socket</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/strategies/io.rb', line 115</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_apply_socket_timeouts'>apply_socket_timeouts</span><span class='lparen'>(</span><span class='id identifier rubyid_sock'>sock</span><span class='comma'>,</span> <span class='label'>deadline:</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="../Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='period'>.</span><span class='id identifier rubyid_infinite?'>infinite?</span>
+
+  <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>=</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='period'>.</span><span class='id identifier rubyid_remaining'>remaining</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>&lt;=</span> <span class='int'>0</span>
+
+  <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='id identifier rubyid_remaining'>remaining</span><span class='comma'>,</span> <span class='const'><span class='object_link'><a href="#MIN_SOCKET_TIMEOUT-constant" title="TIMEx::Strategies::IO::MIN_SOCKET_TIMEOUT (constant)">MIN_SOCKET_TIMEOUT</a></span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_max'>max</span>
+  <span class='kw'>if</span> <span class='op'>::</span><span class='const'>Socket</span><span class='period'>.</span><span class='id identifier rubyid_const_defined?'>const_defined?</span><span class='lparen'>(</span><span class='symbol'>:SO_RCVTIMEO_FLOAT</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='op'>::</span><span class='const'>Socket</span><span class='period'>.</span><span class='id identifier rubyid_const_defined?'>const_defined?</span><span class='lparen'>(</span><span class='symbol'>:SO_SNDTIMEO_FLOAT</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_sock'>sock</span><span class='period'>.</span><span class='id identifier rubyid_setsockopt'>setsockopt</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SOL_SOCKET</span><span class='comma'>,</span> <span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SO_RCVTIMEO_FLOAT</span><span class='comma'>,</span> <span class='id identifier rubyid_remaining'>remaining</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_sock'>sock</span><span class='period'>.</span><span class='id identifier rubyid_setsockopt'>setsockopt</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SOL_SOCKET</span><span class='comma'>,</span> <span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SO_SNDTIMEO_FLOAT</span><span class='comma'>,</span> <span class='id identifier rubyid_remaining'>remaining</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_tv'>tv</span> <span class='op'>=</span> <span class='id identifier rubyid_pack_timeval'>pack_timeval</span><span class='lparen'>(</span><span class='id identifier rubyid_remaining'>remaining</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_sock'>sock</span><span class='period'>.</span><span class='id identifier rubyid_setsockopt'>setsockopt</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SOL_SOCKET</span><span class='comma'>,</span> <span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SO_RCVTIMEO</span><span class='comma'>,</span> <span class='id identifier rubyid_tv'>tv</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_sock'>sock</span><span class='period'>.</span><span class='id identifier rubyid_setsockopt'>setsockopt</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SOL_SOCKET</span><span class='comma'>,</span> <span class='op'>::</span><span class='const'>Socket</span><span class='op'>::</span><span class='const'>SO_SNDTIMEO</span><span class='comma'>,</span> <span class='id identifier rubyid_tv'>tv</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>rescue</span> <span class='const'>StandardError</span>
+  <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="connect-class_method">
+  
+    .<strong>connect</strong>(host, port, deadline:, apply_timeouts: true)  &#x21d2; <tt>::Socket</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Resolves <code>host</code> (respecting <code>deadline</code>) and connects via the first
+working address family. Avoids <code>getaddrinfo</code> blocking past the
+deadline by delegating to <code>Resolv</code> with the remaining time.</p>
+<p>The returned socket also has SO_RCV,SNDTIMEO applied to the
+remaining deadline so that subsequent blocking reads don't outlive
+the budget if the caller forgets to use <span class='object_link'><a href="#read-class_method" title="TIMEx::Strategies::IO.read (method)">read</a></span> / <span class='object_link'><a href="#write-class_method" title="TIMEx::Strategies::IO.write (method)">write</a></span>. Use
+<code>apply_timeouts: false</code> to opt out.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>host</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>port</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>apply_timeouts</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>true</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>when <code>true</code>, sets socket read/write timeouts</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>::Socket</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>connected stream socket</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>SocketError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when resolution yields no addresses</p></div>
+      
+    </li>
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when resolution or connect exceeds the deadline</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/strategies/io.rb', line 85</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_connect'>connect</span><span class='lparen'>(</span><span class='id identifier rubyid_host'>host</span><span class='comma'>,</span> <span class='id identifier rubyid_port'>port</span><span class='comma'>,</span> <span class='label'>deadline:</span><span class='comma'>,</span> <span class='label'>apply_timeouts:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_deadline'>deadline</span>  <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="../Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_addresses'>addresses</span> <span class='op'>=</span> <span class='id identifier rubyid_resolve_host'>resolve_host</span><span class='lparen'>(</span><span class='id identifier rubyid_host'>host</span><span class='comma'>,</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='op'>::</span><span class='const'>SocketError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>could not resolve </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_host'>host</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='id identifier rubyid_addresses'>addresses</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+
+  <span class='id identifier rubyid_last_error'>last_error</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='id identifier rubyid_addresses'>addresses</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_addr'>addr</span><span class='op'>|</span>
+    <span class='id identifier rubyid_sock'>sock</span> <span class='op'>=</span> <span class='id identifier rubyid_open_socket'>open_socket</span><span class='lparen'>(</span><span class='id identifier rubyid_addr'>addr</span><span class='comma'>,</span> <span class='id identifier rubyid_port'>port</span><span class='comma'>,</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_apply_socket_timeouts'>apply_socket_timeouts</span><span class='lparen'>(</span><span class='id identifier rubyid_sock'>sock</span><span class='comma'>,</span> <span class='label'>deadline:</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_apply_timeouts'>apply_timeouts</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_sock'>sock</span>
+  <span class='kw'>rescue</span> <span class='const'><span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></span>
+    <span class='id identifier rubyid_raise'>raise</span>
+  <span class='kw'>rescue</span> <span class='const'>StandardError</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='id identifier rubyid_last_error'>last_error</span> <span class='op'>=</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='kw'>next</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='id identifier rubyid_last_error'>last_error</span> <span class='op'>||</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>ECONNREFUSED</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>could not connect to </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_host'>host</span><span class='embexpr_end'>}</span><span class='tstring_content'>:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_port'>port</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="read-class_method">
+  
+    .<strong>read</strong>(io, len, deadline:)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Reads up to <code>len</code> bytes using non-blocking reads bounded by <code>deadline</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>io</span>
+      
+      
+        <span class='type'>(<tt>::IO</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>len</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>maximum bytes to read</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>data read (may be shorter than <code>len</code>)</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when the wait exhausts the budget</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+31
+32
+33
+34
+35
+36
+37
+38</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/strategies/io.rb', line 31</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='id identifier rubyid_io'>io</span><span class='comma'>,</span> <span class='id identifier rubyid_len'>len</span><span class='comma'>,</span> <span class='label'>deadline:</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="../Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_loop'>loop</span> <span class='kw'>do</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_io'>io</span><span class='period'>.</span><span class='id identifier rubyid_read_nonblock'>read_nonblock</span><span class='lparen'>(</span><span class='id identifier rubyid_len'>len</span><span class='rparen'>)</span>
+  <span class='kw'>rescue</span> <span class='op'>::</span><span class='const'>IO</span><span class='op'>::</span><span class='const'>WaitReadable</span>
+    <span class='id identifier rubyid_wait_for'>wait_for</span><span class='lparen'>(</span><span class='id identifier rubyid_io'>io</span><span class='comma'>,</span> <span class='symbol'>:read</span><span class='comma'>,</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="write-class_method">
+  
+    .<strong>write</strong>(io, buffer, deadline:)  &#x21d2; <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Writes the full <code>buffer</code>, retrying on <code>IO::WaitWritable</code> until done or expired.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>io</span>
+      
+      
+        <span class='type'>(<tt>::IO</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>buffer</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>total bytes written</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when the wait exhausts the budget</p></div>
+      
+    </li>
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>IOError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when <code>write_nonblock</code> reports zero progress</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/strategies/io.rb', line 48</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_write'>write</span><span class='lparen'>(</span><span class='id identifier rubyid_io'>io</span><span class='comma'>,</span> <span class='id identifier rubyid_buffer'>buffer</span><span class='comma'>,</span> <span class='label'>deadline:</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_coerce'><span class='object_link'><a href="../Deadline.html#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_total'>total</span>    <span class='op'>=</span> <span class='id identifier rubyid_buffer'>buffer</span><span class='period'>.</span><span class='id identifier rubyid_bytesize'>bytesize</span>
+  <span class='id identifier rubyid_offset'>offset</span>   <span class='op'>=</span> <span class='int'>0</span>
+  <span class='kw'>while</span> <span class='id identifier rubyid_offset'>offset</span> <span class='op'>&lt;</span> <span class='id identifier rubyid_total'>total</span>
+    <span class='kw'>begin</span>
+      <span class='comment'># Avoid the per-iteration `byteslice` alloc on the common path
+</span>      <span class='comment'># where we write the whole buffer in one go; only slice once we
+</span>      <span class='comment'># know the kernel took a partial write.
+</span>      <span class='id identifier rubyid_chunk'>chunk</span> <span class='op'>=</span> <span class='id identifier rubyid_offset'>offset</span><span class='period'>.</span><span class='id identifier rubyid_zero?'>zero?</span> <span class='op'>?</span> <span class='id identifier rubyid_buffer'>buffer</span> <span class='op'>:</span> <span class='id identifier rubyid_buffer'>buffer</span><span class='period'>.</span><span class='id identifier rubyid_byteslice'>byteslice</span><span class='lparen'>(</span><span class='id identifier rubyid_offset'>offset</span><span class='comma'>,</span> <span class='id identifier rubyid_total'>total</span> <span class='op'>-</span> <span class='id identifier rubyid_offset'>offset</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_n'>n</span>     <span class='op'>=</span> <span class='id identifier rubyid_io'>io</span><span class='period'>.</span><span class='id identifier rubyid_write_nonblock'>write_nonblock</span><span class='lparen'>(</span><span class='id identifier rubyid_chunk'>chunk</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_raise'>raise</span> <span class='op'>::</span><span class='const'>IOError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>write_nonblock returned 0 bytes (no progress)</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='id identifier rubyid_n'>n</span><span class='period'>.</span><span class='id identifier rubyid_zero?'>zero?</span>
+
+      <span class='id identifier rubyid_offset'>offset</span> <span class='op'>+=</span> <span class='id identifier rubyid_n'>n</span>
+    <span class='kw'>rescue</span> <span class='op'>::</span><span class='const'>IO</span><span class='op'>::</span><span class='const'>WaitWritable</span>
+      <span class='id identifier rubyid_wait_for'>wait_for</span><span class='lparen'>(</span><span class='id identifier rubyid_io'>io</span><span class='comma'>,</span> <span class='symbol'>:write</span><span class='comma'>,</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_total'>total</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu May 14 21:51:13 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.4.9).
+</div>
+
+    </div>
+  </body>
+</html>

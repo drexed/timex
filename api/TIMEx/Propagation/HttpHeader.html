@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: TIMEx::Propagation::HttpHeader
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "TIMEx::Propagation::HttpHeader";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (H)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Propagation.html" title="TIMEx::Propagation (module)">Propagation</a></span></span>
+     &raquo; 
+    <span class="title">HttpHeader</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: TIMEx::Propagation::HttpHeader
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  <dl>
+      <dt>Extended by:</dt>
+      <dd><span class='object_link'><a href="" title="TIMEx::Propagation::HttpHeader (module)">HttpHeader</a></span></dd>
+  </dl>
+  
+  
+  
+  
+
+  
+  <dl>
+    <dt>Included in:</dt>
+    <dd><span class='object_link'><a href="" title="TIMEx::Propagation::HttpHeader (module)">HttpHeader</a></span></dd>
+  </dl>
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/timex/propagation/http_header.rb
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Helpers for reading and writing the <span class='object_link'><a href="../Deadline.html#HEADER_NAME-constant" title="TIMEx::Deadline::HEADER_NAME (constant)">Deadline::HEADER_NAME</a></span> wire format on
+Rack env and generic header maps.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="../Deadline.html#from_header-class_method" title="TIMEx::Deadline.from_header (method)">Deadline.from_header</a></span></li>
+    
+      <li><span class='object_link'><a href="../Deadline.html#to_header-instance_method" title="TIMEx::Deadline#to_header (method)">Deadline#to_header</a></span></li>
+    
+  </ul>
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="HEADER_NAME-constant" class="">HEADER_NAME =
+          
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Deadline.html#HEADER_NAME-constant" title="TIMEx::Deadline::HEADER_NAME (constant)">HEADER_NAME</a></span></span></pre></dd>
+      
+        <dt id="RACK_HEADER_KEY-constant" class="">RACK_HEADER_KEY =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>HTTP_X_TIMEX_DEADLINE</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#from_headers-instance_method" title="#from_headers (instance method)">#<strong>from_headers</strong>(headers)  &#x21d2; Deadline<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Resolves a deadline from a case-insensitive header map when possible.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#from_rack_env-instance_method" title="#from_rack_env (instance method)">#<strong>from_rack_env</strong>(env)  &#x21d2; Deadline<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Parsed deadline or <code>nil</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inject-instance_method" title="#inject (instance method)">#<strong>inject</strong>(headers, deadline, prefer: :remaining)  &#x21d2; Hash </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Writes <code>deadline</code> into <code>headers</code> under <span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span>.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="from_headers-instance_method">
+  
+    #<strong>from_headers</strong>(headers)  &#x21d2; <tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Resolves a deadline from a case-insensitive header map when possible.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>headers</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>, <tt>#key?</tt>, <tt>#find</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>header-like collection</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+27
+28
+29
+30
+31
+32
+33
+34</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/propagation/http_header.rb', line 27</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_from_headers'>from_headers</span><span class='lparen'>(</span><span class='id identifier rubyid_headers'>headers</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from_header'><span class='object_link'><a href="../Deadline.html#from_header-class_method" title="TIMEx::Deadline.from_header (method)">from_header</a></span></span><span class='lparen'>(</span><span class='kw'>nil</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_headers'>headers</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+
+  <span class='kw'>return</span> <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from_header'><span class='object_link'><a href="../Deadline.html#from_header-class_method" title="TIMEx::Deadline.from_header (method)">from_header</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_headers'>headers</span><span class='lbracket'>[</span><span class='const'><span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_headers'>headers</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:key?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_headers'>headers</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span></span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_pair'>pair</span> <span class='op'>=</span> <span class='id identifier rubyid_headers'>headers</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid__'>_</span><span class='op'>|</span> <span class='id identifier rubyid_k'>k</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_casecmp?'>casecmp?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span></span><span class='rparen'>)</span> <span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_headers'>headers</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:find</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from_header'><span class='object_link'><a href="../Deadline.html#from_header-class_method" title="TIMEx::Deadline.from_header (method)">from_header</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_pair'>pair</span><span class='op'>&amp;.</span><span class='id identifier rubyid_last'>last</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="from_rack_env-instance_method">
+  
+    #<strong>from_rack_env</strong>(env)  &#x21d2; <tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns parsed deadline or <code>nil</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>env</span>
+      
+      
+        <span class='type'>(<tt>Hash{String =&gt; Object}</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Rack environment (+HTTP_*+ keys)</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>parsed deadline or <code>nil</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+19
+20
+21</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/propagation/http_header.rb', line 19</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_from_rack_env'>from_rack_env</span><span class='lparen'>(</span><span class='id identifier rubyid_env'>env</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from_header'><span class='object_link'><a href="../Deadline.html#from_header-class_method" title="TIMEx::Deadline.from_header (method)">from_header</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_env'>env</span><span class='lbracket'>[</span><span class='const'><span class='object_link'><a href="#RACK_HEADER_KEY-constant" title="TIMEx::Propagation::HttpHeader::RACK_HEADER_KEY (constant)">RACK_HEADER_KEY</a></span></span><span class='rbracket'>]</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inject-instance_method">
+  
+    #<strong>inject</strong>(headers, deadline, prefer: :remaining)  &#x21d2; <tt>Hash</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Writes <code>deadline</code> into <code>headers</code> under <span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>headers</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>mutable header map (mutated in place)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>deadline</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>prefer</span>
+      
+      
+        <span class='type'>(<tt>:remaining</tt>, <tt>:wall</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>:remaining</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>forwarded to <span class='object_link'><a href="../Deadline.html#to_header-instance_method" title="TIMEx::Deadline#to_header (method)">Deadline#to_header</a></span></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>headers</code> (same object)</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+42
+43
+44
+45</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/propagation/http_header.rb', line 42</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_inject'>inject</span><span class='lparen'>(</span><span class='id identifier rubyid_headers'>headers</span><span class='comma'>,</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='comma'>,</span> <span class='label'>prefer:</span> <span class='symbol'>:remaining</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_headers'>headers</span><span class='lbracket'>[</span><span class='const'><span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Propagation::HttpHeader::HEADER_NAME (constant)">HEADER_NAME</a></span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_deadline'>deadline</span><span class='period'>.</span><span class='id identifier rubyid_to_header'>to_header</span><span class='lparen'>(</span><span class='label'>prefer:</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_headers'>headers</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu May 14 21:51:13 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.4.9).
+</div>
+
+    </div>
+  </body>
+</html>

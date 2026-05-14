@@ -1,0 +1,1025 @@
+{% extends "main.html" %}
+
+{% block content %}
+<style>
+.md-main__inner {
+  margin-top: 0 !important;
+  max-width: none;
+}
+.md-content__inner {
+  margin: 0;
+  padding: 0;
+}
+.md-content__inner > :first-child { margin-top: 0; }
+.md-content__inner::before { height: 0; }
+.md-content__button { display: none; }
+
+:root {
+  --tx-accent: #18a2c3;
+  --tx-accent-bright: #22d3ee;
+  --tx-accent-glow: rgba(8, 145, 178, 0.45);
+  --tx-warn: #18a2c3;
+  --tx-ok: #22c55e;
+  --tx-bg: #0c1118;
+  --tx-surface: #121922;
+  --tx-surface-2: #181f2a;
+  --tx-fg: #e8edf4;
+  --tx-muted: #8b98ab;
+  --tx-border: rgba(255, 255, 255, 0.08);
+  --tx-rule: rgba(255, 255, 255, 0.04);
+  --tx-mono: var(--md-code-font-family, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+[data-md-color-scheme="default"] {
+  --tx-accent: #0e7490;
+  --tx-accent-bright: #18a2c3;
+  --tx-accent-glow: rgba(14, 116, 144, 0.35);
+  --tx-bg: #f4f6f9;
+  --tx-surface: #ffffff;
+  --tx-surface-2: #eef2f7;
+  --tx-fg: #0f172a;
+  --tx-muted: #5c6b82;
+  --tx-border: rgba(15, 23, 42, 0.1);
+  --tx-rule: rgba(15, 23, 42, 0.06);
+}
+
+.home {
+  background: var(--tx-bg);
+  color: var(--tx-fg);
+  font-family: var(--md-text-font-family);
+}
+.home a { text-decoration: none; }
+
+.home p code,
+.home h1 code,
+.home h2 code,
+.home h3 code,
+.home li code,
+.home .tagline code,
+.home .section-sub code {
+  background: rgba(8, 145, 178, 0.1);
+  border: 1px solid rgba(8, 145, 178, 0.22);
+  color: var(--tx-accent);
+  padding: 0.08em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+  font-family: var(--tx-mono);
+}
+.home .md-code__nav { display: none; }
+
+[data-md-color-scheme="default"] .home p code,
+[data-md-color-scheme="default"] .home h1 code,
+[data-md-color-scheme="default"] .home h2 code,
+[data-md-color-scheme="default"] .home h3 code,
+[data-md-color-scheme="default"] .home li code,
+[data-md-color-scheme="default"] .home .tagline code,
+[data-md-color-scheme="default"] .home .section-sub code {
+  background: rgba(14, 116, 144, 0.08);
+  border-color: rgba(14, 116, 144, 0.2);
+}
+
+.win {
+  background: var(--tx-surface);
+  border: 1px solid var(--tx-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.win-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--tx-border);
+  font-family: var(--tx-mono);
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+.win-dots { display: flex; gap: 0.35rem; }
+.win-dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--tx-border);
+}
+.win-dots span:nth-child(1) { background: #ff5f57; }
+.win-dots span:nth-child(2) { background: #ffbd2e; }
+.win-dots span:nth-child(3) { background: #28c840; }
+
+.win-path { margin-left: 0.5rem; opacity: 0.85; }
+.win-tag {
+  margin-left: auto;
+  color: var(--tx-accent-bright);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: 4.5rem 1.5rem 4rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--tx-border);
+  background:
+    radial-gradient(ellipse 900px 480px at 50% -20%, rgba(34, 211, 238, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 600px 360px at 85% 60%, rgba(8, 145, 178, 0.08) 0%, transparent 50%),
+    var(--tx-bg);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--tx-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tx-rule) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 40%, black, transparent);
+  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 40%, black, transparent);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .hero-grid { grid-template-columns: 1.1fr 0.9fr; }
+}
+
+.hero-copy { position: relative; z-index: 1; }
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--tx-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tx-accent-bright);
+  margin-bottom: 1.25rem;
+}
+
+.hero-kicker .pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--tx-accent-bright);
+  box-shadow: 0 0 14px var(--tx-accent-glow);
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin: 0 0 1.1rem;
+  color: var(--tx-fg);
+}
+
+.hero h1 .accent {
+  background: linear-gradient(120deg, var(--tx-accent-bright), var(--tx-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero .tagline {
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
+  color: var(--tx-muted);
+  max-width: 34rem;
+  margin: 0 0 1.75rem;
+  line-height: 1.65;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-family: var(--tx-mono);
+  font-size: 0.78rem;
+  color: var(--tx-muted);
+  margin-bottom: 1.75rem;
+}
+
+.hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hero-meta .dot { color: var(--tx-ok); }
+
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-family: var(--tx-mono);
+}
+
+.tx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.35rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.tx-btn .prompt { opacity: 0.55; }
+
+.tx-btn.primary {
+  background: linear-gradient(165deg, var(--tx-accent-bright), var(--tx-accent));
+  color: #fff !important;
+  box-shadow: 0 4px 24px -6px var(--tx-accent-glow);
+}
+
+.tx-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px -4px var(--tx-accent-glow);
+}
+
+.tx-btn.ghost {
+  background: var(--tx-surface);
+  color: var(--tx-fg) !important;
+  border-color: var(--tx-border);
+}
+
+.tx-btn.ghost:hover {
+  border-color: var(--tx-accent);
+  color: var(--tx-accent) !important;
+}
+
+.hero-dial {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-dial svg {
+  width: min(100%, 340px);
+  height: auto;
+  filter: drop-shadow(0 12px 40px rgba(8, 145, 178, 0.2));
+}
+
+.dial-ring { fill: none; stroke: var(--tx-border); stroke-width: 8; }
+.dial-arc {
+  fill: none;
+  stroke: url(#txDialGrad);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 553;
+  stroke-dashoffset: 120;
+}
+.dial-hub { fill: var(--tx-surface-2); stroke: var(--tx-border); stroke-width: 1; }
+.dial-tick { stroke: var(--tx-muted); stroke-width: 1.5; opacity: 0.35; }
+
+/* Sections */
+.section {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem;
+}
+
+.section-eyebrow {
+  font-family: var(--tx-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tx-accent);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.section-title {
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+  color: var(--tx-fg);
+}
+
+.section-sub {
+  color: var(--tx-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 40rem;
+  margin: 0;
+}
+
+.section-head { margin-bottom: 2.5rem; }
+.section-head.center { text-align: center; }
+.section-head.center .section-sub { margin-left: auto; margin-right: auto; }
+
+/* Contrast strip */
+.contrast {
+  background: var(--tx-surface);
+  border-top: 1px solid var(--tx-border);
+  border-bottom: 1px solid var(--tx-border);
+}
+
+.contrast-inner { max-width: 1200px; margin: 0 auto; padding: 4rem 1.5rem; }
+
+.contrast-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 820px) {
+  .contrast-grid { grid-template-columns: 1fr; }
+}
+
+.contrast-panel {
+  border-radius: 12px;
+  border: 1px solid var(--tx-border);
+  overflow: hidden;
+  background: var(--tx-bg);
+}
+
+.contrast-panel.bad { border-color: rgba(245, 158, 11, 0.35); }
+.contrast-panel.good { border-color: rgba(8, 145, 178, 0.35); }
+
+.panel-label {
+  padding: 0.65rem 1rem;
+  font-family: var(--tx-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--tx-border);
+  background: var(--tx-surface);
+  color: var(--tx-muted);
+}
+
+.contrast-panel.bad .panel-label { color: var(--tx-warn); }
+.contrast-panel.good .panel-label { color: var(--tx-accent-bright); }
+
+.panel-code {
+  margin: 0;
+  padding: 1.1rem 1.15rem;
+  font-family: var(--tx-mono);
+  font-size: 0.76rem;
+  line-height: 1.65;
+  overflow-x: auto;
+  background: #0a0e14;
+  color: #c8d0dc;
+}
+
+[data-md-color-scheme="default"] .panel-code {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.panel-code .k  { color: #f472b6; }
+.panel-code .nc { color: #fcd34d; }
+.panel-code .n  { color: #e2e8f0; }
+.panel-code .s  { color: #86efac; }
+.panel-code .c  { color: #94a3b8; }
+.panel-code .o  { color: #f472b6; }
+.panel-code .mi { color: #7dd3fc; }
+
+[data-md-color-scheme="default"] .panel-code .k  { color: #be185d; }
+[data-md-color-scheme="default"] .panel-code .nc { color: #b45309; }
+[data-md-color-scheme="default"] .panel-code .n  { color: #0f172a; }
+[data-md-color-scheme="default"] .panel-code .s  { color: #15803d; }
+[data-md-color-scheme="default"] .panel-code .c  { color: #64748b; }
+[data-md-color-scheme="default"] .panel-code .o  { color: #be185d; }
+[data-md-color-scheme="default"] .panel-code .mi { color: #0369a1; }
+
+.panel-foot {
+  padding: 0.85rem 1rem;
+  font-family: var(--tx-mono);
+  font-size: 0.72rem;
+  color: var(--tx-muted);
+  border-top: 1px solid var(--tx-border);
+  background: var(--tx-surface);
+}
+
+/* Strategy cards */
+.strat-section { background: var(--tx-bg); }
+
+.strat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.strat-card {
+  display: block;
+  padding: 1.35rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--tx-border);
+  background: var(--tx-surface);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.strat-card:hover {
+  border-color: rgba(34, 211, 238, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px -16px var(--tx-accent-glow);
+}
+
+.strat-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tx-fg);
+}
+
+.strat-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--tx-muted);
+}
+
+.strat-card code {
+  display: block;
+  margin-top: 0.75rem;
+  font-family: var(--tx-mono);
+  font-size: 0.7rem;
+  color: var(--tx-accent);
+  word-break: break-word;
+}
+
+/* Showcase */
+.showcase {
+  background: var(--tx-surface);
+  border-top: 1px solid var(--tx-border);
+  border-bottom: 1px solid var(--tx-border);
+}
+
+.show-wrap { max-width: 1200px; margin: 0 auto; padding: 4rem 0 0; }
+.show-wrap .section-head { padding: 0 1.5rem; margin-bottom: 2rem; }
+
+.show-frame {
+  margin: 0 1.5rem 4rem;
+  border-radius: 12px;
+  border: 1px solid var(--tx-border);
+  overflow: hidden;
+  background: #0a0e14;
+}
+
+[data-md-color-scheme="default"] .show-frame { background: #fff; }
+
+.show-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--tx-border);
+  background: var(--tx-surface-2);
+}
+
+[data-md-color-scheme="default"] .show-tabs { background: #f1f5f9; }
+
+.show-tab {
+  padding: 0.75rem 1.1rem;
+  border: none;
+  border-right: 1px solid var(--tx-border);
+  background: transparent;
+  font-family: var(--tx-mono);
+  font-size: 0.8rem;
+  color: var(--tx-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.show-tab:hover { color: var(--tx-fg); }
+.show-tab.active {
+  color: var(--tx-fg);
+  background: #0a0e14;
+  border-bottom-color: var(--tx-accent-bright);
+}
+
+[data-md-color-scheme="default"] .show-tab.active {
+  background: #fff;
+  border-bottom-color: var(--tx-accent);
+}
+
+.show-panels { position: relative; }
+
+.show-panel { display: none; }
+.show-panel.active { display: block; }
+
+.show-panel pre {
+  margin: 0 !important;
+  padding: 1.5rem 1.5rem 2rem !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #0a0e14 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.65 !important;
+  overflow-x: auto;
+}
+
+[data-md-color-scheme="default"] .show-panel pre {
+  background: #fff !important;
+}
+
+.show-panel code { font-family: var(--tx-mono) !important; }
+
+.show-panel .k  { color: #f472b6; }
+.show-panel .nc { color: #fcd34d; }
+.show-panel .n  { color: #e2e8f0; }
+.show-panel .s  { color: #86efac; }
+.show-panel .c  { color: #94a3b8; }
+.show-panel .o  { color: #f472b6; }
+.show-panel .nb { color: #7dd3fc; }
+.show-panel .mi { color: #7dd3fc; }
+
+[data-md-color-scheme="default"] .show-panel .k  { color: #be185d; }
+[data-md-color-scheme="default"] .show-panel .nc { color: #b45309; }
+[data-md-color-scheme="default"] .show-panel .n  { color: #0f172a; }
+[data-md-color-scheme="default"] .show-panel .s  { color: #15803d; }
+[data-md-color-scheme="default"] .show-panel .c  { color: #64748b; }
+[data-md-color-scheme="default"] .show-panel .o  { color: #be185d; }
+[data-md-color-scheme="default"] .show-panel .nb { color: #0369a1; }
+[data-md-color-scheme="default"] .show-panel .mi { color: #0369a1; }
+
+/* Features */
+.features { background: var(--tx-bg); }
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.1rem;
+  margin-top: 2rem;
+}
+
+.feat-card {
+  padding: 1.4rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--tx-border);
+  background: var(--tx-surface);
+}
+
+.feat-card h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tx-fg);
+}
+
+.feat-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.58;
+  color: var(--tx-muted);
+}
+
+.feat-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  background: rgba(8, 145, 178, 0.12);
+  border: 1px solid rgba(8, 145, 178, 0.25);
+  color: var(--tx-accent-bright);
+}
+
+.feat-icon svg {
+  width: 20px; height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Decision */
+.decision {
+  background: var(--tx-surface-2);
+  border-top: 1px solid var(--tx-border);
+  padding: 3rem 1.5rem;
+}
+
+.decision-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  font-family: var(--tx-mono);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--tx-muted);
+  background: var(--tx-bg);
+  border: 1px solid var(--tx-border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+}
+
+.decision-inner strong { color: var(--tx-accent-bright); }
+
+/* CTA */
+.cta {
+  text-align: center;
+  padding: 4rem 1.5rem 5rem;
+  background: var(--tx-surface);
+  border-top: 1px solid var(--tx-border);
+}
+
+.cta h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  margin: 0 0 1.5rem;
+  color: var(--tx-fg);
+}
+
+.cta .section-head {
+  margin-bottom: 1.5rem;
+}
+
+.install-box {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem 0.75rem 1.1rem;
+  background: var(--tx-bg);
+  border: 1px solid var(--tx-border);
+  border-radius: 10px;
+  font-family: var(--tx-mono);
+  font-size: 0.95rem;
+}
+
+.install-box .prompt { color: var(--tx-accent); }
+.install-box code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+}
+
+.copy-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--tx-border);
+  background: transparent;
+  font-family: var(--tx-mono);
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  cursor: pointer;
+}
+
+.copy-btn:hover { border-color: var(--tx-accent); color: var(--tx-accent); }
+.copy-btn.copied { border-color: var(--tx-ok); color: var(--tx-ok); }
+
+.cta-links {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.75rem;
+  font-family: var(--tx-mono);
+  font-size: 0.88rem;
+}
+
+.cta-links a {
+  color: var(--tx-fg);
+  border-bottom: 1px solid var(--tx-border);
+  padding-bottom: 2px;
+}
+
+.cta-links a:hover {
+  color: var(--tx-accent);
+  border-bottom-color: var(--tx-accent);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dialSweep {
+  from { stroke-dashoffset: 380; }
+  to { stroke-dashoffset: 80; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy > * {
+    animation: fadeUp 0.65s ease-out both;
+  }
+  .hero-kicker { animation-delay: 0s; }
+  .hero h1 { animation-delay: 0.06s; }
+  .hero .tagline { animation-delay: 0.12s; }
+  .hero-meta { animation-delay: 0.16s; }
+  .hero-cta { animation-delay: 0.22s; }
+  .hero-dial { animation: fadeUp 0.8s ease-out 0.1s both; }
+  .dial-arc { animation: dialSweep 4s ease-in-out infinite alternate; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 3rem 1rem 3rem; }
+  .hero-cta { flex-direction: column; }
+  .tx-btn { width: 100%; justify-content: center; }
+  .install-box { flex-direction: column; }
+}
+</style>
+
+<div class="home">
+
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="hero-kicker">
+        <span class="pulse" aria-hidden="true"></span>
+        Ruby timeouts
+      </div>
+      <h1>Chaotic delays, <span class="accent">explicit cutoffs.</span></h1>
+      <p class="tagline">
+        A library for timeouts in Ruby that prefers <code>cooperative</code> cancellation and reserves <code>kill switches</code> when you opt-in.
+      </p>
+      <div class="hero-cta">
+        <a class="tx-btn primary" href="getting_started/"><span class="prompt">$</span> open-the-docs</a>
+        <a class="tx-btn ghost" href="https://github.com/drexed/timex"><span class="prompt">&gt;</span> view-on-github</a>
+      </div>
+    </div>
+
+    <div class="hero-dial" aria-hidden="true">
+      <svg viewBox="0 0 200 200" role="img">
+        <defs>
+          <linearGradient id="txDialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#22d3ee"/>
+            <stop offset="100%" style="stop-color:#18a2c3"/>
+          </linearGradient>
+        </defs>
+        <circle class="dial-ring" cx="100" cy="100" r="88"/>
+        <circle class="dial-arc" cx="100" cy="100" r="88" transform="rotate(-90 100 100)"/>
+        <circle class="dial-hub" cx="100" cy="100" r="54"/>
+        <g class="dial-ticks">
+          <line class="dial-tick" x1="100" y1="24" x2="100" y2="34"/>
+          <line class="dial-tick" x1="176" y1="100" x2="166" y2="100"/>
+          <line class="dial-tick" x1="100" y1="176" x2="100" y2="166"/>
+          <line class="dial-tick" x1="24" y1="100" x2="34" y2="100"/>
+        </g>
+        <text x="100" y="96" text-anchor="middle" fill="var(--tx-fg)" font-family="var(--tx-mono)" font-size="15" font-weight="700">check!</text>
+        <text x="100" y="118" text-anchor="middle" fill="var(--tx-muted)" font-family="var(--tx-mono)" font-size="9.5" letter-spacing="0.12em">DEADLINE</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="contrast">
+  <div class="contrast-inner">
+    <div class="section-head center">
+      <span class="section-eyebrow">Safety</span>
+      <h2 class="section-title">Why skip <code>Timeout.timeout</code>?</h2>
+      <p class="section-sub">Ruby&rsquo;s built-in timeout can yell &ldquo;time&rsquo;s up!&rdquo; from a background thread on almost any line. TIMEx waits until you call <code>check!</code>, so you only stop where it is actually safe.</p>
+    </div>
+
+    <div class="contrast-grid">
+      <div class="contrast-panel bad">
+        <div class="panel-label">stdlib &mdash; surprise guest</div>
+        <pre class="panel-code"><code><span class="k">require</span> <span class="s">"timeout"</span>
+
+<span class="nc">Timeout</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">mutex</span><span class="o">.</span><span class="n">synchronize</span> <span class="k">do</span>
+    <span class="c"># the timer thread can raise right here</span>
+    <span class="n">write_half_a_buffer</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+        <div class="panel-foot">That raise can land between two random steps&mdash;inside a lock, halfway through IO, or deep in native code. Fun for debugging, bad for production.</div>
+      </div>
+
+      <div class="contrast-panel good">
+        <div class="panel-label">timex &mdash; you pick the pit stops</div>
+        <pre class="panel-code"><code><span class="k">require</span> <span class="s">"timex"</span>
+
+<span class="nc">TIMEx</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">d</span><span class="o">|</span>
+  <span class="mi">1000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">check!</span>   <span class="c"># cheap check: any time left?</span>
+    <span class="n">process_row</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+        <div class="panel-foot"><code>Expired</code> is an <code>Exception</code>, not a plain <code>StandardError</code>, so a wide <code>rescue =&gt; e</code> will not quietly eat your timeout.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="strat-section section">
+  <div class="section-head">
+    <span class="section-eyebrow">Strategies</span>
+    <h2 class="section-title">Pick the timeout flavor that fits the job.</h2>
+    <p class="section-sub">Most paths take a <code>Deadline</code>&mdash;a shared clock that says &ldquo;wrap it up.&rdquo; Ask for the shortest time you need with <code>min</code>, pass the same clock downstream with headers, and reach for the bigger hammers only when Ruby alone cannot keep the promise.</p>
+  </div>
+
+  <div class="strat-grid">
+    <a class="strat-card" href="strategies/cooperative/">
+      <h3>Cooperative</h3>
+      <p>Your everyday Ruby: loops, parsing, crunching data. Sprinkle <code style="display: inline-block;">check!</code> where stopping is safe&mdash;cheap pit stops, no drama.</p>
+      <code>TIMEx.deadline(1.5) { |d| &hellip; }</code>
+    </a>
+    <a class="strat-card" href="strategies/io/">
+      <h3>IO</h3>
+      <p>Reading and writing to sockets and files. Each call gets a slice of the clock so one slow peer cannot hog the whole budget.</p>
+      <code>TIMEx::Strategies::IO.read(io, n, deadline:)</code>
+    </a>
+    <a class="strat-card" href="strategies/subprocess/">
+      <h3>Subprocess</h3>
+      <p>Heavy CPU or code you do not fully trust? Run it in another process so a stuck interpreter cannot freeze your app forever.</p>
+      <code>strategy: :subprocess</code>
+    </a>
+    <a class="strat-card" href="composers/two_phase/">
+      <h3>TwoPhase</h3>
+      <p>Be nice first: ask politely to stop. If that does not work, flip the hard switch after a short grace period.</p>
+      <code>TIMEx::Composers::TwoPhase</code>
+    </a>
+    <a class="strat-card" href="composers/hedged/">
+      <h3>Hedged</h3>
+      <p>Start a backup request when the first one dawdles&mdash;only when doing it twice is harmless (think cache-friendly reads, not payments).</p>
+      <code>TIMEx::Composers::Hedged</code>
+    </a>
+    <a class="strat-card" href="propagation/http_header/">
+      <h3>Propagation</h3>
+      <p>Let the next service know how much time is left by tucking the deadline into <code style="display: inline-block;">X-TIMEx-Deadline</code> on the way out the door.</p>
+      <code>TIMEx::Propagation::HttpHeader</code>
+    </a>
+  </div>
+</section>
+
+<section class="showcase">
+  <div class="show-wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Tiny recipes</span>
+      <h2 class="section-title">Copy something that fits your day.</h2>
+      <p class="section-sub">Same gem, four moods: loop in Ruby, wait on a socket, stack a polite timeout with a backup plan, or thread the deadline through Rack. Hop between the tabs, peek at the comments&mdash;no quiz at the end.</p>
+    </div>
+
+    <div class="show-frame win">
+      <div class="win-bar">
+        <span class="win-dots"><span></span><span></span><span></span></span>
+        <span class="win-path">playground/</span>
+        <span class="win-tag">TIMEx</span>
+      </div>
+
+      <div class="show-tabs" role="tablist">
+        <button type="button" class="show-tab active" data-panel="coop" role="tab">Loop + checks</button>
+        <button type="button" class="show-tab" data-panel="io" role="tab">Socket read</button>
+        <button type="button" class="show-tab" data-panel="twophase" role="tab">Soft, then hard</button>
+        <button type="button" class="show-tab" data-panel="rack" role="tab">Rack + friends</button>
+      </div>
+
+      <div class="show-panels">
+        <div class="show-panel active" id="panel-coop" role="tabpanel">
+          <pre><code><span class="k">require</span> <span class="s">"timex"</span>
+
+<span class="c"># Whole block gets 2 seconds; `deadline` is your little stopwatch.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nc">TIMEx</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">deadline</span><span class="o">|</span>
+  <span class="n">rows</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+    <span class="n">deadline</span><span class="o">.</span><span class="n">check!</span>   <span class="c"># cheap &ldquo;still got time?&rdquo; poke</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+        </div>
+        <div class="show-panel" id="panel-io" role="tabpanel">
+          <pre><code><span class="c"># Read up to 4096 bytes, but bail if this one read takes more than 1s.</span>
+<span class="nc">TIMEx</span><span class="o">::</span><span class="nc">Strategies</span><span class="o">::</span><span class="nc">IO</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span> <span class="ss">deadline:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span></code></pre>
+        </div>
+        <div class="show-panel" id="panel-twophase" role="tabpanel">
+          <pre><code><span class="c"># Ask nicely first (cooperative). If things stall, subprocess after grace.</span>
+<span class="c"># idempotent: true is required—the block may run twice on escalation.</span>
+<span class="nc">TIMEx</span><span class="o">::</span><span class="nc">Composers</span><span class="o">::</span><span class="nc">TwoPhase</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+  <span class="ss">soft:</span> <span class="ss">:cooperative</span><span class="p">,</span>
+  <span class="ss">hard:</span> <span class="ss">:subprocess</span><span class="p">,</span>
+  <span class="ss">grace:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span>
+  <span class="ss">hard_deadline:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>
+  <span class="ss">idempotent:</span> <span class="kp">true</span>
+<span class="p">)</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">deadline:</span> <span class="mi">5</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="n">run_user_code</span> <span class="p">}</span></code></pre>
+        </div>
+        <div class="show-panel" id="panel-rack" role="tabpanel">
+          <pre><code><span class="c"># Gemfile: gem "timex"</span>
+<span class="c"># config.ru &mdash; teach Rack about incoming deadlines</span>
+<span class="n">use</span> <span class="nc">TIMEx</span><span class="o">::</span><span class="nc">Propagation</span><span class="o">::</span><span class="nc">RackMiddleware</span>
+
+<span class="c"># When you call another service, tuck the deadline into the headers</span>
+<span class="nc">TIMEx</span><span class="o">::</span><span class="nc">Propagation</span><span class="o">::</span><span class="nc">HttpHeader</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">headers</span><span class="p">,</span> <span class="n">deadline</span><span class="p">)</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features section">
+  <div class="section-head center">
+    <span class="section-eyebrow">Design</span>
+    <h2 class="section-title">Feels obvious once you use it.</h2>
+    <p class="section-sub">Sensible defaults out of the box, knobs when you need them, and clocks that play nice in tests&mdash;no secret handshake required.</p>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <h3>Deadlines ride along with you to any destination</h3>
+      <p>Hand the &ldquo;how much time is left?&rdquo; object through your code and into other services. When two deadlines bump into each other, <code>min</code> picks the tighter one so nobody gets extra runway by accident.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M4 14l4-4 4 4 8-8"/><circle cx="9" cy="13" r="2"/></svg></div>
+      <h3>A steady stopwatch, not wall time drama</h3>
+      <p>By default we count time with a monotonic clock&mdash;the kind that keeps ticking even if the system clock jumps around after an NTP fix. Your budget does not magically grow when the wall clock does. Wall time still tags along when you want human-readable hints across machines.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+      <h3><code>Expired</code> refuses to hide</h3>
+      <p>It subclasses <code>Exception</code>, not <code>StandardError</code>, on purpose. A plain <code>rescue =&gt; e</code> will not swallow your timeout and pretend everything is fine.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/></svg></div>
+      <h3>Telemetry stays out of your way</h3>
+      <p>Nothing runs until you wire something in. When you are ready, hook up Logger, ActiveSupport::Notifications, or OpenTelemetry and get spans and counts without rewriting the world.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg></div>
+      <h3>Fake time in tests, real confidence</h3>
+      <p>Skip the <code>sleep 900</code> jokes. Drive a virtual clock forward, hit the edge cases, and prove your <code>Expired</code> branches do what you expect&mdash;fast and boring, the way tests should be.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+      <h3><code>bin/timex-lint</code> has your back</h3>
+      <p>Small static check that taps you on the shoulder when a <code>rescue Exception</code> sneaks inside a <code>TIMEx.deadline</code> block&mdash;the kind of foot-gun that makes timeouts vanish in production.</p>
+    </div>
+  </div>
+</section>
+
+<section class="decision">
+  <div class="decision-inner" aria-label="Strategy decision hints">
+    <p>
+      <strong>Which timeout should I grab?</strong> Tiny cheat sheet when the menu feels huge&mdash;pick the shape of your problem, then reach for the matching tool.<br><br>
+      <strong>Waiting on a socket or a slow file read?</strong> Use <code>TIMEx::Strategies::IO</code> so the wait itself can time out, not just the code around it.<br><br>
+      <strong>Churning through a normal Ruby loop?</strong> Wrap it in <code>TIMEx.deadline</code> and poke <code>deadline.check!</code> now and then so the loop can bail when the time budget is gone.<br><br>
+      <strong>Stuck inside a C extension you cannot interrupt?</strong> <code>TIMEx::Strategies::Subprocess</code> or <code>TIMEx::Composers::TwoPhase</code> gives you a harder stop than Ruby alone can promise.<br><br>
+      <strong>Running code you do not fully trust?</strong> Park it in <code>TIMEx::Strategies::Subprocess</code>; add <code>setrlimit</code>-style caps on your platform when you want a firmer fence around CPU or memory.<br><br>
+      <strong>Calling a remote service that is usually fast but sometimes drags?</strong> <code>TIMEx::Composers::Hedged</code> fires a polite backup try&mdash;only when doing it twice cannot break things (think idempotent reads).<br><br>
+      <strong>Everything else failed and you are out of ideas?</strong> <code>TIMEx::Strategies::Unsafe</code> exists, but treat it like hot sauce: tiny dash, loud code review, no surprises in prod.
+    </p>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="section-head center">
+    <span class="section-eyebrow">Install</span>
+    <h2 class="section-title">Let&rsquo;s get TIMEx on your machine.</h2>
+   </div>
+  <div class="install-box">
+    <span class="prompt">$</span>
+    <code id="installCmd">gem install timex</code>
+    <button type="button" class="copy-btn" id="copyBtn" aria-label="Copy gem install command">
+      <span class="txt">copy</span>
+    </button>
+  </div>
+  <div class="cta-links">
+    <a href="getting_started/">docs</a>
+    <a href="https://github.com/drexed/timex/tree/main/examples">examples</a>
+    <a href="https://github.com/drexed/timex/blob/main/CHANGELOG.md">changelog</a>
+    <a href="https://github.com/drexed/timex">github</a>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll(".show-tab").forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var id = tab.getAttribute("data-panel");
+      document.querySelectorAll(".show-tab").forEach(function (t) { t.classList.remove("active"); });
+      document.querySelectorAll(".show-panel").forEach(function (p) { p.classList.remove("active"); });
+      tab.classList.add("active");
+      var panel = document.getElementById("panel-" + id);
+      if (panel) panel.classList.add("active");
+    });
+  });
+
+  var copyBtn = document.getElementById("copyBtn");
+  var installCmd = document.getElementById("installCmd");
+  if (copyBtn && installCmd && navigator.clipboard) {
+    copyBtn.addEventListener("click", function () {
+      navigator.clipboard.writeText(installCmd.textContent.trim()).then(function () {
+        copyBtn.classList.add("copied");
+        copyBtn.querySelector(".txt").textContent = "copied";
+        setTimeout(function () {
+          copyBtn.classList.remove("copied");
+          copyBtn.querySelector(".txt").textContent = "copy";
+        }, 1600);
+      });
+    });
+  }
+})();
+</script>
+
+{% endblock %}

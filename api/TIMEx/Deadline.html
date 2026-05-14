@@ -1,0 +1,3038 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: TIMEx::Deadline
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "TIMEx::Deadline";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (D)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span>
+     &raquo; 
+    <span class="title">Deadline</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: TIMEx::Deadline
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">TIMEx::Deadline</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/timex/deadline.rb
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Immutable deadline: an absolute monotonic expiry (+monotonic_ns+), optional
+wall alignment (+wall_ns+), and propagation metadata (+origin+, <code>depth</code>).</p>
+<p>Construct via <span class='object_link'><a href="#in-class_method" title="TIMEx::Deadline.in (method)">Deadline.in</a></span>, <span class='object_link'><a href="#at_wall-class_method" title="TIMEx::Deadline.at_wall (method)">Deadline.at_wall</a></span>, <span class='object_link'><a href="#infinite-class_method" title="TIMEx::Deadline.infinite (method)">Deadline.infinite</a></span>, <span class='object_link'><a href="#coerce-class_method" title="TIMEx::Deadline.coerce (method)">Deadline.coerce</a></span>, or <span class='object_link'><a href="#from_header-class_method" title="TIMEx::Deadline.from_header (method)">Deadline.from_header</a></span>;
+compare and narrow with <span class='object_link'><a href="#min-instance_method" title="TIMEx::Deadline#min (method)">#min</a></span>. Instances are frozen at construction.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></li>
+    
+      <li><span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span></li>
+    
+  </ul>
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="HEADER_NAME-constant" class="">HEADER_NAME =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>X-TIMEx-Deadline</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="DEFAULT_SKEW_TOLERANCE_MS-constant" class="">DEFAULT_SKEW_TOLERANCE_MS =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>250</span></pre></dd>
+      
+        <dt id="MAX_HEADER_BYTESIZE-constant" class="">MAX_HEADER_BYTESIZE =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>256</span></pre></dd>
+      
+        <dt id="MAX_MS_VALUE-constant" class="">MAX_MS_VALUE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>1 year, prevents overflow attacks</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='int'>365</span> <span class='op'>*</span> <span class='int'>24</span> <span class='op'>*</span> <span class='int'>60</span> <span class='op'>*</span> <span class='int'>60</span> <span class='op'>*</span> <span class='int'>1000</span></pre></dd>
+      
+        <dt id="MAX_BUDGET_SECONDS-constant" class="">MAX_BUDGET_SECONDS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Upper bound for <span class='object_link'><a href="#in-class_method" title="TIMEx::Deadline.in (method)">in</a></span> in seconds, aligned with <span class='object_link'><a href="#MAX_MS_VALUE-constant" title="TIMEx::Deadline::MAX_MS_VALUE (constant)">MAX_MS_VALUE</a></span> / 1000 so
+numeric budgets cannot exceed what untrusted headers can express.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="#MAX_MS_VALUE-constant" title="TIMEx::Deadline::MAX_MS_VALUE (constant)">MAX_MS_VALUE</a></span></span> <span class='op'>/</span> <span class='float'>1000.0</span></pre></dd>
+      
+        <dt id="MAX_DEPTH-constant" class="">MAX_DEPTH =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>64</span></pre></dd>
+      
+        <dt id="ORIGIN_MAX_BYTESIZE-constant" class="">ORIGIN_MAX_BYTESIZE =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>64</span></pre></dd>
+      
+        <dt id="ORIGIN_PATTERN-constant" class="">ORIGIN_PATTERN =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>\A[A-Za-z0-9_.-]+\z</span><span class='regexp_end'>/</span></span></pre></dd>
+      
+        <dt id="MAX_ISO8601_BYTESIZE-constant" class="">MAX_ISO8601_BYTESIZE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Tight cap on iso8601 timestamp length to bound the cost of Rational
+math in <code>check_wall_skew</code>. A canonical TIMEx-emitted stamp is 24 chars
+(<code>YYYY-MM-DDTHH:MM:SS.sssZ</code>); 40 leaves room for offset variants.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='int'>40</span></pre></dd>
+      
+        <dt id="INFINITE-constant" class="">INFINITE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Eagerly initialized after the class is defined (see bottom of file) so
+concurrent first-callers can't race to construct two distinct sentinels.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='kw'>nil</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#depth-instance_method" title="#depth (instance method)">#<strong>depth</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>placeholder; overwritten below.</p></div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initial_ns-instance_method" title="#initial_ns (instance method)">#<strong>initial_ns</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>placeholder; overwritten below.</p></div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#monotonic_ns-instance_method" title="#monotonic_ns (instance method)">#<strong>monotonic_ns</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>placeholder; overwritten below.</p></div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#origin-instance_method" title="#origin (instance method)">#<strong>origin</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>placeholder; overwritten below.</p></div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#wall_ns-instance_method" title="#wall_ns (instance method)">#<strong>wall_ns</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>placeholder; overwritten below.</p></div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#at_wall-class_method" title="at_wall (class method)">.<strong>at_wall</strong>(time)  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Builds a deadline that expires when wall clock reaches <code>time</code> (nanosecond precision).</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#coerce-class_method" title="coerce (class method)">.<strong>coerce</strong>(value)  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Normalizes user input into a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#from_header-class_method" title="from_header (class method)">.<strong>from_header</strong>(str, skew_tolerance_ms: nil)  &#x21d2; Deadline<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Parses the wire-format deadline header into a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span>, or <code>nil</code> when malformed, oversized, ambiguous, or rejected for security policy.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#in-class_method" title="in (class method)">.<strong>in</strong>(seconds)  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Builds a relative deadline from now using the active <span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#infinite-class_method" title="infinite (class method)">.<strong>infinite</strong>  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Shared infinite sentinel (<span class='object_link'><a href="#INFINITE-constant" title="TIMEx::Deadline::INFINITE (constant)">INFINITE</a></span>).</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#==-instance_method" title="#== (instance method)">#<strong>==</strong>(other)  &#x21d2; Boolean </a>
+    
+
+    
+      (also: #eql?)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p><code>true</code> when monotonic instant, wall, and propagation metadata match.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#check!-instance_method" title="#check! (instance method)">#<strong>check!</strong>(strategy: nil)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Raises <span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span> when <span class='object_link'><a href="#expired%3F-instance_method" title="TIMEx::Deadline#expired? (method)">#expired?</a></span> on this thread.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#expired%3F-instance_method" title="#expired? (instance method)">#<strong>expired?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p><code>true</code> when already past the monotonic expiry (never <code>true</code> when infinite).</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#expired_error-instance_method" title="#expired_error (instance method)">#<strong>expired_error</strong>(strategy: nil, message: &quot;deadline expired&quot;)  &#x21d2; Expired </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Builds an <span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span> that consistently reports the <em>original</em> budget as <code>deadline_ms</code> (positive) and the overshoot/elapsed-past as <code>elapsed_ms</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#hash-instance_method" title="#hash (instance method)">#<strong>hash</strong>  &#x21d2; Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Hash of monotonic instant and metadata.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#infinite%3F-instance_method" title="#infinite? (instance method)">#<strong>infinite?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p><code>true</code> when this deadline never fires.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initial_ms-instance_method" title="#initial_ms (instance method)">#<strong>initial_ms</strong>  &#x21d2; Float<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Original budget in milliseconds, or <code>nil</code> for infinite deadlines or when no budget was captured at construction.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(monotonic_ns:, wall_ns: nil, origin: nil, depth: 0, infinite: false, initial_ns: nil)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Creates a frozen deadline.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inspect-instance_method" title="#inspect (instance method)">#<strong>inspect</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Short debug representation.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#min-instance_method" title="#min (instance method)">#<strong>min</strong>(other)  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Earliest-expiring of <code>self</code> and <code>other</code> (finite vs infinite handled).</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#remaining-instance_method" title="#remaining (instance method)">#<strong>remaining</strong>  &#x21d2; Float </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Seconds remaining; <code>Float::INFINITY</code> when infinite.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#remaining_ms-instance_method" title="#remaining_ms (instance method)">#<strong>remaining_ms</strong>  &#x21d2; Float </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Milliseconds remaining; <code>Float::INFINITY</code> when infinite.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#remaining_ns-instance_method" title="#remaining_ns (instance method)">#<strong>remaining_ns</strong>  &#x21d2; Float, Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Nanoseconds remaining before expiry; <code>Float::INFINITY</code> when infinite.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#same_instant%3F-instance_method" title="#same_instant? (instance method)">#<strong>same_instant?</strong>(other)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p><code>true</code> when <code>other</code> is a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span> with the same monotonic expiry.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#shield-instance_method" title="#shield (instance method)">#<strong>shield</strong> { ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Temporarily disables <span class='object_link'><a href="#expired%3F-instance_method" title="TIMEx::Deadline#expired? (method)">#expired?</a></span> for the current thread (all fibers).</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#to_header-instance_method" title="#to_header (instance method)">#<strong>to_header</strong>(prefer: :remaining)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Serializes this deadline for the <code>X-TIMEx-Deadline</code> header.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#with_meta-instance_method" title="#with_meta (instance method)">#<strong>with_meta</strong>(origin: nil, depth: nil)  &#x21d2; Deadline </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns a copy with updated propagation metadata (+origin+, <code>depth</code>).</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(monotonic_ns:, wall_ns: nil, origin: nil, depth: 0, infinite: false, initial_ns: nil)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'><p>The instance is frozen before returning to the caller.</p></div>
+  </div>
+
+<p>Creates a frozen deadline. Callers typically use <span class='object_link'><a href="#in-class_method" title="TIMEx::Deadline.in (method)">in</a></span>, <span class='object_link'><a href="#at_wall-class_method" title="TIMEx::Deadline.at_wall (method)">at_wall</a></span>, or <span class='object_link'><a href="#infinite-class_method" title="TIMEx::Deadline.infinite (method)">infinite</a></span>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>monotonic_ns</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>Float</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>absolute monotonic ns at expiration</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>wall_ns</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>absolute wall ns at expiration</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>origin</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>human-readable identifier (already sanitized)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>depth</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>0</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>propagation hop count (0 .. <span class='object_link'><a href="#MAX_DEPTH-constant" title="TIMEx::Deadline::MAX_DEPTH (constant)">MAX_DEPTH</a></span>)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>infinite</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>false</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>true only for the <span class='object_link'><a href="#infinite-class_method" title="TIMEx::Deadline.infinite (method)">infinite</a></span> sentinel</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>initial_ns</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>Float</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>original budget in nanoseconds at
+construction time. Captured so <span class='object_link'><a href="Expired.html#deadline_ms-instance_method" title="TIMEx::Expired#deadline_ms (method)">Expired#deadline_ms</a></span> can report the
+<em>budget</em> (positive, stable) rather than ad-hoc post-expiry math.</p></div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+246
+247
+248
+249
+250
+251
+252
+253
+254</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 246</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>monotonic_ns:</span><span class='comma'>,</span> <span class='label'>wall_ns:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>origin:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>depth:</span> <span class='int'>0</span><span class='comma'>,</span> <span class='label'>infinite:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>initial_ns:</span> <span class='kw'>nil</span><span class='rparen'>)</span> <span class='comment'># rubocop:disable Metrics/ParameterLists
+</span>  <span class='ivar'>@monotonic_ns</span> <span class='op'>=</span> <span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span>
+  <span class='ivar'>@wall_ns</span> <span class='op'>=</span> <span class='id identifier rubyid_wall_ns'>wall_ns</span>
+  <span class='ivar'>@origin</span> <span class='op'>=</span> <span class='id identifier rubyid_origin'>origin</span>
+  <span class='ivar'>@depth</span> <span class='op'>=</span> <span class='id identifier rubyid_depth'>depth</span> <span class='op'>||</span> <span class='int'>0</span>
+  <span class='ivar'>@infinite</span> <span class='op'>=</span> <span class='id identifier rubyid_infinite'>infinite</span>
+  <span class='ivar'>@initial_ns</span> <span class='op'>=</span> <span class='id identifier rubyid_initial_ns'>initial_ns</span>
+  <span class='id identifier rubyid_freeze'>freeze</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="depth-instance_method">
+  
+    #<strong>depth</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>placeholder; overwritten below</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 231</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_depth'>depth</span>
+  <span class='ivar'>@depth</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="initial_ns-instance_method">
+  
+    #<strong>initial_ns</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>placeholder; overwritten below</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 231</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initial_ns'>initial_ns</span>
+  <span class='ivar'>@initial_ns</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="monotonic_ns-instance_method">
+  
+    #<strong>monotonic_ns</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>placeholder; overwritten below</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 231</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span>
+  <span class='ivar'>@monotonic_ns</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="origin-instance_method">
+  
+    #<strong>origin</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>placeholder; overwritten below</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 231</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_origin'>origin</span>
+  <span class='ivar'>@origin</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="wall_ns-instance_method">
+  
+    #<strong>wall_ns</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>placeholder; overwritten below</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 231</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_wall_ns'>wall_ns</span>
+  <span class='ivar'>@wall_ns</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="at_wall-class_method">
+  
+    .<strong>at_wall</strong>(time)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Builds a deadline that expires when wall clock reaches <code>time</code> (nanosecond precision).</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>time</span>
+      
+      
+        <span class='type'>(<tt>Time</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>target wall time (uses <code>tv_sec</code> / <code>tv_nsec</code>)</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 61</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_at_wall'>at_wall</span><span class='lparen'>(</span><span class='id identifier rubyid_time'>time</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_wall_now'>wall_now</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_wall_ns'><span class='object_link'><a href="Clock.html#wall_ns-instance_method" title="TIMEx::Clock#wall_ns (method)">wall_ns</a></span></span>
+  <span class='id identifier rubyid_target_wall'>target_wall</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_time'>time</span><span class='period'>.</span><span class='id identifier rubyid_tv_sec'>tv_sec</span> <span class='op'>*</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Clock.html#NS_PER_SECOND-constant" title="TIMEx::Clock::NS_PER_SECOND (constant)">NS_PER_SECOND</a></span></span><span class='rparen'>)</span> <span class='op'>+</span> <span class='id identifier rubyid_time'>time</span><span class='period'>.</span><span class='id identifier rubyid_tv_nsec'>tv_nsec</span>
+  <span class='id identifier rubyid_delta'>delta</span> <span class='op'>=</span> <span class='id identifier rubyid_target_wall'>target_wall</span> <span class='op'>-</span> <span class='id identifier rubyid_wall_now'>wall_now</span>
+  <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span>
+    <span class='label'>monotonic_ns:</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span> <span class='op'>+</span> <span class='id identifier rubyid_delta'>delta</span><span class='comma'>,</span>
+    <span class='label'>wall_ns:</span> <span class='id identifier rubyid_target_wall'>target_wall</span><span class='comma'>,</span>
+    <span class='label'>initial_ns:</span> <span class='id identifier rubyid_delta'>delta</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="coerce-class_method">
+  
+    .<strong>coerce</strong>(value)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Normalizes user input into a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">TIMEx::Deadline</a></span>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>value</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>, <tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>existing deadline, seconds, wall <code>Time</code>, <code>nil</code> for infinite, etc.</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when <code>value</code> cannot be interpreted (e.g. bare Symbol)</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 82</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_coerce'>coerce</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='kw'>case</span> <span class='id identifier rubyid_value'>value</span>
+  <span class='kw'>when</span> <span class='const'><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></span> <span class='kw'>then</span> <span class='id identifier rubyid_value'>value</span>
+  <span class='kw'>when</span> <span class='const'>Numeric</span> <span class='kw'>then</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_in'>in</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='kw'>when</span> <span class='const'>Time</span> <span class='kw'>then</span> <span class='id identifier rubyid_at_wall'>at_wall</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='kw'>when</span> <span class='kw'>nil</span> <span class='kw'>then</span> <span class='id identifier rubyid_infinite'>infinite</span>
+  <span class='kw'>when</span> <span class='const'>Symbol</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>cannot coerce </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> into a Deadline </span><span class='tstring_end'>&quot;</span></span> \
+                         <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>(did you mean strategy: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>?)</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>cannot coerce </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> into a Deadline</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="from_header-class_method">
+  
+    .<strong>from_header</strong>(str, skew_tolerance_ms: nil)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'><p>Rejects combined <code>ms</code> and <code>wall</code> fields, duplicate keys, negative depth,
+and oversized payloads. Skew detection emits telemetry but does not mutate
+the parsed deadline.</p></div>
+  </div>
+
+<p>Parses the wire-format deadline header into a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">TIMEx::Deadline</a></span>, or <code>nil</code> when
+malformed, oversized, ambiguous, or rejected for security policy.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>str</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>raw header value (see <span class='object_link'><a href="#HEADER_NAME-constant" title="TIMEx::Deadline::HEADER_NAME (constant)">HEADER_NAME</a></span>)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>skew_tolerance_ms</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>override; defaults to <span class='object_link'><a href="../TIMEx.html#config-class_method" title="TIMEx.config (method)">TIMEx.config</a></span></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>parsed deadline, or <code>nil</code> on any validation failure</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 106</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_from_header'>from_header</span><span class='lparen'>(</span><span class='id identifier rubyid_str'>str</span><span class='comma'>,</span> <span class='label'>skew_tolerance_ms:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_skew_tolerance_ms'>skew_tolerance_ms</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="../TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='period'>.</span><span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_skew_tolerance_ms'><span class='object_link'><a href="Configuration.html#skew_tolerance_ms-instance_method" title="TIMEx::Configuration#skew_tolerance_ms (method)">skew_tolerance_ms</a></span></span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_str'>str</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='id identifier rubyid_str'>str</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span> <span class='op'>||</span> <span class='id identifier rubyid_str'>str</span><span class='period'>.</span><span class='id identifier rubyid_bytesize'>bytesize</span> <span class='op'>&gt;</span> <span class='const'><span class='object_link'><a href="#MAX_HEADER_BYTESIZE-constant" title="TIMEx::Deadline::MAX_HEADER_BYTESIZE (constant)">MAX_HEADER_BYTESIZE</a></span></span>
+
+  <span class='id identifier rubyid_parts'>parts</span> <span class='op'>=</span> <span class='id identifier rubyid_parse_header_pairs'>parse_header_pairs</span><span class='lparen'>(</span><span class='id identifier rubyid_str'>str</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+
+  <span class='comment'># Reject ambiguous payloads up front: an attacker who can append to a
+</span>  <span class='comment'># trusted upstream&#39;s header could otherwise smuggle `ms=99999` next to
+</span>  <span class='comment'># `wall=` to extend the budget, or supply both and rely on parser
+</span>  <span class='comment'># precedence. Either is a single, well-defined field.
+</span>  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ms</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wall</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_depth'>depth</span> <span class='op'>=</span> <span class='id identifier rubyid_parts'>parts</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>depth</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>&amp;&amp;</span> <span class='const'>Integer</span><span class='lparen'>(</span><span class='id identifier rubyid_parts'>parts</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>depth</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='int'>10</span><span class='comma'>,</span> <span class='label'>exception:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+  <span class='comment'># Reject explicitly negative depth so client bugs don&#39;t silently coerce
+</span>  <span class='comment'># to 0 and bypass `max_depth` ceilings on the receiver.
+</span>  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_depth'>depth</span><span class='op'>&amp;.</span><span class='id identifier rubyid_negative?'>negative?</span>
+
+  <span class='id identifier rubyid_depth'>depth</span> <span class='op'>=</span> <span class='id identifier rubyid_depth'>depth</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='const'><span class='object_link'><a href="#MAX_DEPTH-constant" title="TIMEx::Deadline::MAX_DEPTH (constant)">MAX_DEPTH</a></span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_depth'>depth</span>
+  <span class='id identifier rubyid_origin'>origin</span> <span class='op'>=</span> <span class='id identifier rubyid_sanitize_origin'>sanitize_origin</span><span class='lparen'>(</span><span class='id identifier rubyid_parts'>parts</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>origin</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ms</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_ms'>ms</span> <span class='op'>=</span> <span class='id identifier rubyid_parts'>parts</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ms</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='comment'># Even for `ms=inf` we attach origin/depth so middleware can enforce
+</span>    <span class='comment'># `max_depth` on infinite-budget propagations. Returning the shared
+</span>    <span class='comment'># sentinel here would drop those, allowing depth-limit bypass.
+</span>    <span class='kw'>if</span> <span class='id identifier rubyid_ms'>ms</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>inf</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>return</span> <span class='id identifier rubyid_infinite'>infinite</span> <span class='kw'>if</span> <span class='id identifier rubyid_origin'>origin</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_depth'>depth</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+
+      <span class='kw'>return</span> <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span>
+        <span class='label'>monotonic_ns:</span> <span class='const'>Float</span><span class='op'>::</span><span class='const'>INFINITY</span><span class='comma'>,</span>
+        <span class='label'>wall_ns:</span> <span class='kw'>nil</span><span class='comma'>,</span>
+        <span class='label'>origin:</span><span class='comma'>,</span>
+        <span class='label'>depth:</span> <span class='id identifier rubyid_depth'>depth</span> <span class='op'>||</span> <span class='int'>0</span><span class='comma'>,</span>
+        <span class='label'>infinite:</span> <span class='kw'>true</span>
+      <span class='rparen'>)</span>
+    <span class='kw'>end</span>
+
+    <span class='id identifier rubyid_ms_value'>ms_value</span> <span class='op'>=</span> <span class='const'>Float</span><span class='lparen'>(</span><span class='id identifier rubyid_ms'>ms</span><span class='comma'>,</span> <span class='label'>exception:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_ms_value'>ms_value</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='op'>!</span><span class='id identifier rubyid_ms_value'>ms_value</span><span class='period'>.</span><span class='id identifier rubyid_finite?'>finite?</span> <span class='op'>||</span> <span class='id identifier rubyid_ms_value'>ms_value</span><span class='period'>.</span><span class='id identifier rubyid_negative?'>negative?</span> <span class='op'>||</span> <span class='id identifier rubyid_ms_value'>ms_value</span> <span class='op'>&gt;</span> <span class='const'><span class='object_link'><a href="#MAX_MS_VALUE-constant" title="TIMEx::Deadline::MAX_MS_VALUE (constant)">MAX_MS_VALUE</a></span></span>
+
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_in'>in</span><span class='lparen'>(</span><span class='id identifier rubyid_ms_value'>ms_value</span> <span class='op'>/</span> <span class='float'>1000.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_with_meta'>with_meta</span><span class='lparen'>(</span><span class='label'>origin:</span><span class='comma'>,</span> <span class='label'>depth:</span><span class='rparen'>)</span>
+  <span class='kw'>elsif</span> <span class='id identifier rubyid_parts'>parts</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wall</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_wall_raw'>wall_raw</span> <span class='op'>=</span> <span class='id identifier rubyid_parts'>parts</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wall</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_wall_raw'>wall_raw</span><span class='period'>.</span><span class='id identifier rubyid_bytesize'>bytesize</span> <span class='op'>&gt;</span> <span class='const'><span class='object_link'><a href="#MAX_ISO8601_BYTESIZE-constant" title="TIMEx::Deadline::MAX_ISO8601_BYTESIZE (constant)">MAX_ISO8601_BYTESIZE</a></span></span>
+
+    <span class='id identifier rubyid_wall_time'>wall_time</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_iso8601'>iso8601</span><span class='lparen'>(</span><span class='id identifier rubyid_wall_raw'>wall_raw</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_d'>d</span> <span class='op'>=</span> <span class='id identifier rubyid_at_wall'>at_wall</span><span class='lparen'>(</span><span class='id identifier rubyid_wall_time'>wall_time</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_check_wall_skew'>check_wall_skew</span><span class='lparen'>(</span><span class='id identifier rubyid_d'>d</span><span class='comma'>,</span> <span class='id identifier rubyid_parts'>parts</span><span class='comma'>,</span> <span class='id identifier rubyid_skew_tolerance_ms'>skew_tolerance_ms</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_d'>d</span><span class='period'>.</span><span class='id identifier rubyid_with_meta'>with_meta</span><span class='lparen'>(</span><span class='label'>origin:</span><span class='comma'>,</span> <span class='label'>depth:</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>rescue</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='const'>TypeError</span><span class='comma'>,</span> <span class='const'>RangeError</span>
+  <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="in-class_method">
+  
+    .<strong>in</strong>(seconds)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Builds a relative deadline from now using the active <span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>seconds</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>duration in seconds; <code>nil</code> means <span class='object_link'><a href="#infinite-class_method" title="TIMEx::Deadline.infinite (method)">infinite</a></span></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>finite deadline, or <span class='object_link'><a href="#infinite-class_method" title="TIMEx::Deadline.infinite (method)">infinite</a></span> when out of range / non-finite</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 38</span>
+
+<span class='kw'>def</span> <span class='kw'>in</span><span class='lparen'>(</span><span class='id identifier rubyid_seconds'>seconds</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_infinite'>infinite</span> <span class='kw'>if</span> <span class='id identifier rubyid_seconds'>seconds</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_seconds'>seconds</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_demoted_to_infinite'>demoted_to_infinite</span><span class='lparen'>(</span><span class='id identifier rubyid_seconds'>seconds</span><span class='comma'>,</span> <span class='label'>reason:</span> <span class='symbol'>:non_finite</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_seconds'>seconds</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:finite?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_seconds'>seconds</span><span class='period'>.</span><span class='id identifier rubyid_finite?'>finite?</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_demoted_to_infinite'>demoted_to_infinite</span><span class='lparen'>(</span><span class='id identifier rubyid_seconds'>seconds</span><span class='comma'>,</span> <span class='label'>reason:</span> <span class='symbol'>:over_max_budget</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_seconds'>seconds</span> <span class='op'>&gt;</span> <span class='const'><span class='object_link'><a href="#MAX_BUDGET_SECONDS-constant" title="TIMEx::Deadline::MAX_BUDGET_SECONDS (constant)">MAX_BUDGET_SECONDS</a></span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_product'>product</span> <span class='op'>=</span> <span class='id identifier rubyid_seconds'>seconds</span> <span class='op'>*</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Clock.html#NS_PER_SECOND-constant" title="TIMEx::Clock::NS_PER_SECOND (constant)">NS_PER_SECOND</a></span></span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_demoted_to_infinite'>demoted_to_infinite</span><span class='lparen'>(</span><span class='id identifier rubyid_seconds'>seconds</span><span class='comma'>,</span> <span class='label'>reason:</span> <span class='symbol'>:float_overflow</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_product'>product</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Float</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_product'>product</span><span class='period'>.</span><span class='id identifier rubyid_finite?'>finite?</span>
+
+  <span class='id identifier rubyid_delta_ns'>delta_ns</span> <span class='op'>=</span> <span class='id identifier rubyid_product'>product</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+  <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span>
+    <span class='label'>monotonic_ns:</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span> <span class='op'>+</span> <span class='id identifier rubyid_delta_ns'>delta_ns</span><span class='comma'>,</span>
+    <span class='label'>wall_ns:</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_wall_ns'><span class='object_link'><a href="Clock.html#wall_ns-instance_method" title="TIMEx::Clock#wall_ns (method)">wall_ns</a></span></span> <span class='op'>+</span> <span class='id identifier rubyid_delta_ns'>delta_ns</span><span class='comma'>,</span>
+    <span class='label'>initial_ns:</span> <span class='id identifier rubyid_delta_ns'>delta_ns</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="infinite-class_method">
+  
+    .<strong>infinite</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns shared infinite sentinel (<span class='object_link'><a href="#INFINITE-constant" title="TIMEx::Deadline::INFINITE (constant)">INFINITE</a></span>).</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>shared infinite sentinel (<span class='object_link'><a href="#INFINITE-constant" title="TIMEx::Deadline::INFINITE (constant)">INFINITE</a></span>)</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+73
+74
+75</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 73</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_infinite'>infinite</span>
+  <span class='const'><span class='object_link'><a href="#INFINITE-constant" title="TIMEx::Deadline::INFINITE (constant)">INFINITE</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="==-instance_method">
+  
+    #<strong>==</strong>(other)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='eql?-instance_method'>eql?</span></span>
+    </span>
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'><p>Requires <code>wall_ns</code> parity so <span class='object_link'><a href="#to_header-instance_method" title="TIMEx::Deadline#to_header (method)">#to_header</a></span>+(+prefer: :wall+) cannot diverge for equal instances.</p></div>
+  </div>
+
+<p>Returns <code>true</code> when monotonic instant, wall, and propagation metadata match.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>other</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>true</code> when monotonic instant, wall, and propagation metadata match</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+415
+416
+417
+418
+419
+420
+421</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 415</span>
+
+<span class='kw'>def</span> <span class='op'>==</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span>
+    <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span> <span class='op'>==</span> <span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span> <span class='op'>&amp;&amp;</span>
+    <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_wall_ns'>wall_ns</span> <span class='op'>==</span> <span class='id identifier rubyid_wall_ns'>wall_ns</span> <span class='op'>&amp;&amp;</span>
+    <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_origin'>origin</span> <span class='op'>==</span> <span class='id identifier rubyid_origin'>origin</span> <span class='op'>&amp;&amp;</span>
+    <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_depth'>depth</span> <span class='op'>==</span> <span class='id identifier rubyid_depth'>depth</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="check!-instance_method">
+  
+    #<strong>check!</strong>(strategy: nil)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Raises <span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span> when <span class='object_link'><a href="#expired%3F-instance_method" title="TIMEx::Deadline#expired? (method)">#expired?</a></span> on this thread.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>strategy</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>strategy name for telemetry-style metadata</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>when past deadline</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+325
+326
+327
+328
+329</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 325</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_check!'>check!</span><span class='lparen'>(</span><span class='label'>strategy:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_expired?'>expired?</span>
+
+  <span class='id identifier rubyid_raise'>raise</span> <span class='id identifier rubyid_expired_error'>expired_error</span><span class='lparen'>(</span><span class='label'>strategy:</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="expired?-instance_method">
+  
+    #<strong>expired?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'><p>Returns <code>false</code> while <span class='object_link'><a href="#shield-instance_method" title="TIMEx::Deadline#shield (method)">#shield</a></span> is active on the current thread.</p></div>
+  </div>
+
+<p>Returns <code>true</code> when already past the monotonic expiry (never <code>true</code> when infinite).</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>true</code> when already past the monotonic expiry (never <code>true</code> when infinite)</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+313
+314
+315
+316
+317
+318</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 313</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_expired?'>expired?</span>
+  <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite?'>infinite?</span>
+  <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>if</span> <span class='const'>Thread</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='period'>.</span><span class='id identifier rubyid_thread_variable_get'>thread_variable_get</span><span class='lparen'>(</span><span class='symbol'>:timex_shielded</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_remaining_ns'>remaining_ns</span> <span class='op'>&lt;=</span> <span class='int'>0</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="expired_error-instance_method">
+  
+    #<strong>expired_error</strong>(strategy: nil, message: &quot;deadline expired&quot;)  &#x21d2; <tt><span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Builds an <span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span> that consistently reports the <em>original</em> budget as
+<code>deadline_ms</code> (positive) and the overshoot/elapsed-past as <code>elapsed_ms</code>.
+Strategies should use this instead of constructing <code>Expired</code> ad-hoc to
+keep <code>deadline_ms</code> semantics uniform across the codebase.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>strategy</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>strategy that caught the expiration</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>message</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>&quot;deadline expired&quot;</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>human-readable message</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 339</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_expired_error'>expired_error</span><span class='lparen'>(</span><span class='label'>strategy:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>message:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>deadline expired</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>=</span> <span class='id identifier rubyid_remaining_ms'>remaining_ms</span>
+  <span class='id identifier rubyid_overshoot'>overshoot</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_infinite_remaining_float?'>infinite_remaining_float?</span><span class='lparen'>(</span><span class='id identifier rubyid_remaining'>remaining</span><span class='rparen'>)</span>
+      <span class='kw'>nil</span>
+    <span class='kw'>else</span>
+      <span class='lparen'>(</span><span class='op'>-</span><span class='id identifier rubyid_remaining'>remaining</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span>
+    <span class='kw'>end</span>
+  <span class='const'><span class='object_link'><a href="Expired.html" title="TIMEx::Expired (class)">Expired</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Expired.html#initialize-instance_method" title="TIMEx::Expired#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+    <span class='id identifier rubyid_message'>message</span><span class='comma'>,</span>
+    <span class='label'>strategy:</span><span class='comma'>,</span>
+    <span class='label'>deadline_ms:</span> <span class='id identifier rubyid_initial_ms'>initial_ms</span><span class='op'>&amp;.</span><span class='id identifier rubyid_round'>round</span><span class='comma'>,</span>
+    <span class='label'>elapsed_ms:</span> <span class='id identifier rubyid_overshoot'>overshoot</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="hash-instance_method">
+  
+    #<strong>hash</strong>  &#x21d2; <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns hash of monotonic instant and metadata.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>hash of monotonic instant and metadata</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+425
+426
+427</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 425</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_hash'>hash</span>
+  <span class='lbracket'>[</span><span class='ivar'>@monotonic_ns</span><span class='comma'>,</span> <span class='ivar'>@wall_ns</span><span class='comma'>,</span> <span class='ivar'>@origin</span><span class='comma'>,</span> <span class='ivar'>@depth</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_hash'>hash</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="infinite?-instance_method">
+  
+    #<strong>infinite?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns <code>true</code> when this deadline never fires.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>true</code> when this deadline never fires</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+283
+284
+285</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 283</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_infinite?'>infinite?</span>
+  <span class='ivar'>@infinite</span> <span class='op'>||</span> <span class='ivar'>@monotonic_ns</span> <span class='op'>==</span> <span class='const'>Float</span><span class='op'>::</span><span class='const'>INFINITY</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="initial_ms-instance_method">
+  
+    #<strong>initial_ms</strong>  &#x21d2; <tt>Float</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Original budget in milliseconds, or <code>nil</code> for infinite deadlines or when
+no budget was captured at construction.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Float</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>positive budget in ms when known</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+260
+261
+262
+263
+264</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 260</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initial_ms'>initial_ms</span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite?'>infinite?</span> <span class='op'>||</span> <span class='ivar'>@initial_ns</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+
+  <span class='ivar'>@initial_ns</span> <span class='op'>/</span> <span class='float'>1_000_000.0</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inspect-instance_method">
+  
+    #<strong>inspect</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns short debug representation.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>short debug representation</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+436
+437
+438</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 436</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;TIMEx::Deadline remaining=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_infinite?'>infinite?</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>inf</span><span class='tstring_end'>&#39;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_remaining_ms'>remaining_ms</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span><span class='embexpr_end'>}</span><span class='tstring_content'>ms</span><span class='tstring_end'>&quot;</span></span><span class='embexpr_end'>}</span><span class='tstring_content'> origin=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@origin</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="min-instance_method">
+  
+    #<strong>min</strong>(other)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Earliest-expiring of <code>self</code> and <code>other</code> (finite vs infinite handled).</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>other</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>, <tt>Numeric</tt>, <tt>Time</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>coerced via <span class='object_link'><a href="#coerce-class_method" title="TIMEx::Deadline.coerce (method)">coerce</a></span></p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+359
+360
+361
+362
+363
+364
+365
+366
+367</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 359</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_min'>min</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>self</span> <span class='kw'>if</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+
+  <span class='id identifier rubyid_other'>other</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_coerce'>coerce</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_other'>other</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite?'>infinite?</span>
+  <span class='kw'>return</span> <span class='kw'>self</span> <span class='kw'>if</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_infinite?'>infinite?</span>
+
+  <span class='ivar'>@monotonic_ns</span> <span class='op'>&lt;=</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span> <span class='op'>?</span> <span class='kw'>self</span> <span class='op'>:</span> <span class='id identifier rubyid_other'>other</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="remaining-instance_method">
+  
+    #<strong>remaining</strong>  &#x21d2; <tt>Float</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns seconds remaining; <code>Float::INFINITY</code> when infinite.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>seconds remaining; <code>Float::INFINITY</code> when infinite</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+295
+296
+297
+298
+299
+300</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 295</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_remaining'>remaining</span>
+  <span class='id identifier rubyid_r'>r</span> <span class='op'>=</span> <span class='id identifier rubyid_remaining_ns'>remaining_ns</span>
+  <span class='kw'>return</span> <span class='const'>Float</span><span class='op'>::</span><span class='const'>INFINITY</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite_remaining_float?'>infinite_remaining_float?</span><span class='lparen'>(</span><span class='id identifier rubyid_r'>r</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_r'>r</span> <span class='op'>/</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Clock.html#NS_PER_SECOND-constant" title="TIMEx::Clock::NS_PER_SECOND (constant)">NS_PER_SECOND</a></span></span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="remaining_ms-instance_method">
+  
+    #<strong>remaining_ms</strong>  &#x21d2; <tt>Float</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns milliseconds remaining; <code>Float::INFINITY</code> when infinite.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>milliseconds remaining; <code>Float::INFINITY</code> when infinite</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+303
+304
+305
+306
+307
+308</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 303</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_remaining_ms'>remaining_ms</span>
+  <span class='id identifier rubyid_r'>r</span> <span class='op'>=</span> <span class='id identifier rubyid_remaining_ns'>remaining_ns</span>
+  <span class='kw'>return</span> <span class='const'>Float</span><span class='op'>::</span><span class='const'>INFINITY</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite_remaining_float?'>infinite_remaining_float?</span><span class='lparen'>(</span><span class='id identifier rubyid_r'>r</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_r'>r</span> <span class='op'>/</span> <span class='float'>1_000_000.0</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="remaining_ns-instance_method">
+  
+    #<strong>remaining_ns</strong>  &#x21d2; <tt>Float</tt>, <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns nanoseconds remaining before expiry; <code>Float::INFINITY</code> when infinite.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Float</tt>, <tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>nanoseconds remaining before expiry; <code>Float::INFINITY</code> when infinite</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+288
+289
+290
+291
+292</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 288</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_remaining_ns'>remaining_ns</span>
+  <span class='kw'>return</span> <span class='const'>Float</span><span class='op'>::</span><span class='const'>INFINITY</span> <span class='kw'>if</span> <span class='id identifier rubyid_infinite?'>infinite?</span>
+
+  <span class='ivar'>@monotonic_ns</span> <span class='op'>-</span> <span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'><span class='object_link'><a href="Clock.html#monotonic_ns-instance_method" title="TIMEx::Clock#monotonic_ns (method)">monotonic_ns</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="same_instant?-instance_method">
+  
+    #<strong>same_instant?</strong>(other)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns <code>true</code> when <code>other</code> is a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">TIMEx::Deadline</a></span> with the same monotonic expiry.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>other</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>true</code> when <code>other</code> is a <span class='object_link'><a href="" title="TIMEx::Deadline (class)">TIMEx::Deadline</a></span> with the same monotonic expiry</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+431
+432
+433</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 431</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_same_instant?'>same_instant?</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span> <span class='op'>==</span> <span class='id identifier rubyid_monotonic_ns'>monotonic_ns</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="shield-instance_method">
+  
+    #<strong>shield</strong> { ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'><p>Child threads are not shielded; call <span class='object_link'><a href="#shield-instance_method" title="TIMEx::Deadline#shield (method)">#shield</a></span> in each thread that
+should ignore expiry for nested work.</p></div>
+  </div>
+
+<p>Temporarily disables <span class='object_link'><a href="#expired%3F-instance_method" title="TIMEx::Deadline#expired? (method)">#expired?</a></span> for the current thread (all fibers).</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>work that must not observe expiry checks</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the block's return value</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+376
+377
+378
+379
+380
+381
+382</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 376</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_shield'>shield</span>
+  <span class='id identifier rubyid_previous'>previous</span> <span class='op'>=</span> <span class='const'>Thread</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='period'>.</span><span class='id identifier rubyid_thread_variable_get'>thread_variable_get</span><span class='lparen'>(</span><span class='symbol'>:timex_shielded</span><span class='rparen'>)</span>
+  <span class='const'>Thread</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='period'>.</span><span class='id identifier rubyid_thread_variable_set'>thread_variable_set</span><span class='lparen'>(</span><span class='symbol'>:timex_shielded</span><span class='comma'>,</span> <span class='kw'>true</span><span class='rparen'>)</span>
+  <span class='kw'>yield</span>
+<span class='kw'>ensure</span>
+  <span class='const'>Thread</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='period'>.</span><span class='id identifier rubyid_thread_variable_set'>thread_variable_set</span><span class='lparen'>(</span><span class='symbol'>:timex_shielded</span><span class='comma'>,</span> <span class='id identifier rubyid_previous'>previous</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="to_header-instance_method">
+  
+    #<strong>to_header</strong>(prefer: :remaining)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Serializes this deadline for the <code>X-TIMEx-Deadline</code> header.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>prefer</span>
+      
+      
+        <span class='type'>(<tt>:remaining</tt>, <tt>:wall</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>:remaining</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>emit <code>ms=</code> remaining budget or <code>wall=</code> absolute wall target</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>wire form (no leading header name)</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 388</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_to_header'>to_header</span><span class='lparen'>(</span><span class='label'>prefer:</span> <span class='symbol'>:remaining</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_buf'>buf</span> <span class='op'>=</span> <span class='op'>+</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_infinite?'>infinite?</span>
+    <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ms=inf</span><span class='tstring_end'>&quot;</span></span>
+    <span class='comment'># Bare `ms=inf` round-trips to the shared {Deadline.infinite} sentinel
+</span>    <span class='comment'># (see {.from_header}). Append metadata only when present.
+</span>    <span class='kw'>if</span> <span class='ivar'>@origin</span> <span class='op'>||</span> <span class='op'>!</span><span class='ivar'>@depth</span><span class='period'>.</span><span class='id identifier rubyid_zero?'>zero?</span>
+      <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>;origin=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='ivar'>@origin</span> <span class='kw'>if</span> <span class='ivar'>@origin</span>
+      <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>;depth=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='lparen'>(</span><span class='ivar'>@depth</span> <span class='op'>+</span> <span class='int'>1</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='const'><span class='object_link'><a href="#MAX_DEPTH-constant" title="TIMEx::Deadline::MAX_DEPTH (constant)">MAX_DEPTH</a></span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+    <span class='kw'>end</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_buf'>buf</span>
+  <span class='kw'>end</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_prefer'>prefer</span> <span class='op'>==</span> <span class='symbol'>:wall</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@wall_ns</span>
+    <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wall=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_ns_to_iso8601'>ns_to_iso8601</span><span class='lparen'>(</span><span class='ivar'>@wall_ns</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>;now=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_ns_to_iso8601'>ns_to_iso8601</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="Clock.html" title="TIMEx::Clock (module)">Clock</a></span></span><span class='period'>.</span><span class='id identifier rubyid_wall_ns'><span class='object_link'><a href="Clock.html#wall_ns-instance_method" title="TIMEx::Clock#wall_ns (method)">wall_ns</a></span></span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ms=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_remaining_ms'>remaining_ms</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>;origin=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='ivar'>@origin</span> <span class='kw'>if</span> <span class='ivar'>@origin</span>
+  <span class='id identifier rubyid_buf'>buf</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>;depth=</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&lt;&lt;</span> <span class='lparen'>(</span><span class='ivar'>@depth</span> <span class='op'>+</span> <span class='int'>1</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='const'><span class='object_link'><a href="#MAX_DEPTH-constant" title="TIMEx::Deadline::MAX_DEPTH (constant)">MAX_DEPTH</a></span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+  <span class='id identifier rubyid_buf'>buf</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="with_meta-instance_method">
+  
+    #<strong>with_meta</strong>(origin: nil, depth: nil)  &#x21d2; <tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a copy with updated propagation metadata (+origin+, <code>depth</code>).</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>origin</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>new origin (sanitized); <code>nil</code> keeps existing</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>depth</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>new depth; <code>nil</code> keeps existing</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="TIMEx::Deadline (class)">Deadline</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>new frozen instance sharing the same expiry instants</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/timex/deadline.rb', line 271</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_with_meta'>with_meta</span><span class='lparen'>(</span><span class='label'>origin:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>depth:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span>
+    <span class='label'>monotonic_ns:</span> <span class='ivar'>@monotonic_ns</span><span class='comma'>,</span>
+    <span class='label'>wall_ns:</span> <span class='ivar'>@wall_ns</span><span class='comma'>,</span>
+    <span class='label'>origin:</span> <span class='lparen'>(</span><span class='id identifier rubyid_origin'>origin</span> <span class='op'>&amp;&amp;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='symbol'>:sanitize_origin</span><span class='comma'>,</span> <span class='id identifier rubyid_origin'>origin</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='ivar'>@origin</span><span class='comma'>,</span>
+    <span class='label'>depth:</span> <span class='id identifier rubyid_depth'>depth</span> <span class='op'>||</span> <span class='ivar'>@depth</span><span class='comma'>,</span>
+    <span class='label'>infinite:</span> <span class='ivar'>@infinite</span><span class='comma'>,</span>
+    <span class='label'>initial_ns:</span> <span class='ivar'>@initial_ns</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu May 14 21:51:13 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.4.9).
+</div>
+
+    </div>
+  </body>
+</html>
