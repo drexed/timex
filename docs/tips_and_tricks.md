@@ -98,6 +98,7 @@ End-to-end recipes for common scenarios. Each is a single-page, self-contained s
 
 | Recipe | Strategies / Composers |
 |---|---|
+| [LLM calls with RubyLLM + TIMEx](https://github.com/drexed/timex/blob/main/examples/ai_llm_api_deadline.md) | Faraday `request_timeout`, propagation, Result |
 | [Net::HTTP request with deadline](https://github.com/drexed/timex/blob/main/examples/net_http_request.md) | IO, propagation |
 | [PG query with deadline](https://github.com/drexed/timex/blob/main/examples/pg_query_with_deadline.md) | Closeable, IO |
 | [Redis with deadline](https://github.com/drexed/timex/blob/main/examples/redis_with_deadline.md) | IO |
