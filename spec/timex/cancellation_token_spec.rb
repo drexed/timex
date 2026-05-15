@@ -1,31 +1,37 @@
 # frozen_string_literal: true
 
 RSpec.describe TIMEx::CancellationToken do
-  it "starts uncancelled" do
-    expect(described_class.new).not_to be_cancelled
+  describe "#initialize" do
+    it "starts uncancelled" do
+      expect(described_class.new).not_to be_cancelled
+    end
   end
 
-  it "fires registered observers on cancel" do
-    t = described_class.new
-    fired = []
-    t.on_cancel { |reason| fired << reason }
-    t.cancel(reason: :timeout)
-    expect(fired).to eq([:timeout])
-    expect(t).to be_cancelled
-  end
+  describe "#on_cancel / #cancel" do
+    it "invokes observers with the reason when cancelled" do
+      token = described_class.new
+      fired = []
+      token.on_cancel { |reason| fired << reason }
+      token.cancel(reason: :timeout)
+      expect(fired).to eq([:timeout])
+      expect(token).to be_cancelled
+    end
 
-  it "fires observers added after cancellation immediately" do
-    t = described_class.new
-    t.cancel(reason: :late)
-    fired = []
-    t.on_cancel { |reason| fired << reason }
-    expect(fired).to eq([:late])
-  end
+    context "when the token is already cancelled" do
+      it "runs new observers immediately with the original reason" do
+        token = described_class.new
+        token.cancel(reason: :late)
+        fired = []
+        token.on_cancel { |reason| fired << reason }
+        expect(fired).to eq([:late])
+      end
+    end
 
-  it "is idempotent" do
-    t = described_class.new
-    expect(t.cancel(reason: :a)).to be true
-    expect(t.cancel(reason: :b)).to be false
-    expect(t.reason).to eq(:a)
+    it "is idempotent for cancel" do
+      token = described_class.new
+      expect(token.cancel(reason: :a)).to be(true)
+      expect(token.cancel(reason: :b)).to be(false)
+      expect(token.reason).to eq(:a)
+    end
   end
 end

@@ -7,59 +7,84 @@ RSpec.describe TIMEx do
     end
   end
 
-  describe ".call / .deadline" do
-    it "returns the block value when within budget" do
-      expect(described_class.call(1.0) { 42 }).to eq(42)
-      expect(described_class.deadline(1.0) { :ok }).to eq(:ok)
+  describe ".call" do
+    context "when the block stays within the deadline" do
+      it "returns the block value" do
+        expect(described_class.call(1.0) { 42 }).to eq(42)
+      end
     end
 
-    it "raises Expired by default when the deadline elapses (cooperative)" do
-      expect do
-        described_class.call(0.0001) do |d|
-          sleep 0.05
+    context "when the cooperative deadline elapses before check!" do
+      it "raises TIMEx::Expired by default" do
+        expect do
+          described_class.call(0.0001) do |d|
+            sleep 0.05
+            d.check!
+          end
+        end.to raise_error(TIMEx::Expired)
+      end
+    end
+
+    context "with on_timeout: :return_nil" do
+      it "returns nil instead of raising" do
+        result = described_class.call(0.0001, on_timeout: :return_nil) do |d|
+          sleep 0.01
           d.check!
         end
-      end.to raise_error(TIMEx::Expired)
-    end
-
-    it "supports on_timeout: :return_nil" do
-      result = described_class.call(0.0001, on_timeout: :return_nil) do |d|
-        sleep 0.01
-        d.check!
+        expect(result).to be_nil
       end
-      expect(result).to be_nil
     end
 
-    it "supports on_timeout: :result" do
-      result = described_class.call(0.0001, on_timeout: :result) do |d|
-        sleep 0.01
-        d.check!
-      end
-      expect(result).to be_a(TIMEx::Result).and(have_attributes(outcome: :timeout))
-    end
-
-    it "accepts an explicit Deadline" do
-      d = TIMEx::Deadline.in(2.0)
-      expect(described_class.deadline(d) { :ok }).to eq(:ok)
-    end
-
-    it "raises ArgumentError for a non-callable strategy" do
-      expect { described_class.call(1.0, strategy: Object.new) { :nope } }
-        .to raise_error(ArgumentError, /must be a Symbol, Class, or instance/)
-    end
-
-    it "auto_check inserts cancellation in tight loops" do
-      described_class.configure { |c| c.auto_check_interval = 10 }
-      expect do
-        described_class.call(0.05, auto_check: true) do
-          loop { 1 + 1 }
+    context "with on_timeout: :result" do
+      it "returns a timeout Result" do
+        result = described_class.call(0.0001, on_timeout: :result) do |d|
+          sleep 0.01
+          d.check!
         end
-      end.to raise_error(TIMEx::Expired)
+        expect(result).to be_a(TIMEx::Result).and(have_attributes(outcome: :timeout))
+      end
+    end
+
+    context "when given a Deadline instance" do
+      it "honors it" do
+        expect(described_class.deadline(TIMEx::Deadline.in(2.0)) { :ok }).to eq(:ok)
+      end
+    end
+
+    context "with a non-callable strategy" do
+      it "raises ArgumentError" do
+        expect { described_class.call(1.0, strategy: Object.new) { :nope } }
+          .to raise_error(ArgumentError, /must be a Symbol, Class, or instance/)
+      end
+    end
+
+    context "with auto_check: true and a tight loop" do
+      before { described_class.configure { |c| c.auto_check_interval = 10 } }
+
+      it "raises TIMEx::Expired without cooperative check! calls" do
+        expect do
+          described_class.call(0.05, auto_check: true) { loop { 1 + 1 } }
+        end.to raise_error(TIMEx::Expired)
+      end
+    end
+  end
+
+  describe ".deadline" do
+    context "when the block stays within the deadline" do
+      it "returns the block value" do
+        expect(described_class.deadline(1.0) { :ok }).to eq(:ok)
+      end
+    end
+
+    context "when given a Deadline instance" do
+      it "honors it" do
+        expect(described_class.deadline(TIMEx::Deadline.in(2.0)) { :ok }).to eq(:ok)
+      end
     end
   end
 
   describe ".configure" do
-    it "yields the configuration and changes defaults" do
+    it "yields TIMEx::Configuration and applies persisted defaults" do
       described_class.configure { |c| c.default_on_timeout = :return_nil }
       result = described_class.call(0.0001) do |d|
         sleep 0.01
