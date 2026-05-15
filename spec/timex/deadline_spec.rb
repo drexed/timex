@@ -19,6 +19,32 @@ RSpec.describe TIMEx::Deadline do
     end
   end
 
+  describe ".at_wall" do
+    let(:ns) { TIMEx::Clock::NS_PER_SECOND }
+    let(:wall_origin) { 10_000 * ns }
+
+    around do |example|
+      clock = TIMEx::Clock::VirtualClock.new(monotonic_ns: 500 * ns, wall_ns: wall_origin)
+      TIMEx::Clock.with(clock) { example.run }
+    end
+
+    it "tracks remaining wall delta and shrinks when the clock advances" do
+      target_ns = wall_origin + (7 * ns)
+      t = Time.at(target_ns / ns, target_ns % ns, :nanosecond)
+      d = described_class.at_wall(t)
+      expect(d.remaining).to be_within(1e-6).of(7.0)
+      TIMEx::Clock.current.advance(3)
+      expect(d.remaining).to be_within(1e-6).of(4.0)
+    end
+
+    it "is used by coerce(Time)" do
+      target_ns = wall_origin + (2 * ns)
+      t = Time.at(target_ns / ns, target_ns % ns, :nanosecond)
+      d = described_class.coerce(t)
+      expect(d.remaining).to be_within(1e-6).of(2.0)
+    end
+  end
+
   describe "#expired?" do
     it "is false when remaining > 0" do
       d = described_class.in(1.0)

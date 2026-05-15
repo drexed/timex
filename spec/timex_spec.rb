@@ -45,6 +45,45 @@ RSpec.describe TIMEx do
       end
     end
 
+    context "with on_timeout: :raise_standard" do
+      it "raises TimeoutError wrapping Expired on #original" do
+        err = nil
+        begin
+          described_class.call(0.0001, on_timeout: :raise_standard) do |d|
+            sleep 0.01
+            d.check!
+          end
+        rescue TIMEx::TimeoutError => e
+          err = e
+        end
+        expect(err).to be_a(TIMEx::TimeoutError)
+        expect(err.original).to be_a(TIMEx::Expired)
+      end
+    end
+
+    context "with on_timeout as a Proc" do
+      it "returns the Proc result" do
+        result = described_class.call(0.0001, on_timeout: lambda(&:message)) do |d|
+          sleep 0.01
+          d.check!
+        end
+        expect(result).to be_a(String).and(include("expired"))
+      end
+    end
+
+    context "when no block is given" do
+      it "raises ArgumentError" do
+        expect { described_class.call(1.0) }.to raise_error(ArgumentError, "block required")
+      end
+    end
+
+    context "when strategy names an unknown registration" do
+      it "raises StrategyNotFoundError" do
+        expect { described_class.call(1.0, strategy: :not_registered_in_timex_spec) { :nope } }
+          .to raise_error(TIMEx::StrategyNotFoundError)
+      end
+    end
+
     context "when given a Deadline instance" do
       it "honors it" do
         expect(described_class.deadline(TIMEx::Deadline.in(2.0)) { :ok }).to eq(:ok)

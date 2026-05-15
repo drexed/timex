@@ -12,6 +12,38 @@ RSpec.describe TIMEx::Registry do
         :subprocess
       )
     end
+
+    it "includes :ractor when Ruby registers it" do
+      expect(described_class.known).to include(:ractor) if defined?(Ractor)
+    end
+  end
+
+  describe ".register" do
+    it "rejects objects that do not respond to :call" do
+      expect { described_class.register(:timex_registry_spec_bad, Object.new) }
+        .to raise_error(ArgumentError, /must respond to :call/)
+    end
+
+    it "stores a callable under a symbol for fetch" do
+      callable = proc { :registered_ok }
+      described_class.register(:timex_registry_spec_echo, callable)
+      expect(described_class.fetch(:timex_registry_spec_echo)).to be(callable)
+    end
+  end
+
+  describe ".resolve" do
+    it "returns nil for nil" do
+      expect(described_class.resolve(nil)).to be_nil
+    end
+
+    it "returns the same callable for non-Symbol values" do
+      c = proc {}
+      expect(described_class.resolve(c)).to be(c)
+    end
+
+    it "fetches by Symbol" do
+      expect(described_class.resolve(:cooperative)).to eq(TIMEx::Strategies::Cooperative)
+    end
   end
 
   describe ".fetch" do
