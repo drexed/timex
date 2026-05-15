@@ -80,21 +80,22 @@ That helper nags about **`rescue Exception`** and bare **`rescue`** inside `TIME
 
 End-to-end recipes for common scenarios. Each is a single-page, self-contained snippet you can copy-paste.
 
-| Recipe                                                                                                                       | Strategies / Composers   |
-| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| [Net::HTTP request with deadline](https://github.com/drexed/timex/blob/main/examples/net_http_request.md)                    | IO, propagation          |
-| [PG query with deadline](https://github.com/drexed/timex/blob/main/examples/pg_query_with_deadline.md)                       | Closeable, IO            |
-| [Redis with deadline](https://github.com/drexed/timex/blob/main/examples/redis_with_deadline.md)                             | IO                       |
-| [Faraday middleware](https://github.com/drexed/timex/blob/main/examples/faraday_middleware.md)                               | IO, propagation          |
-| [Sidekiq job deadline](https://github.com/drexed/timex/blob/main/examples/sidekiq_job_deadline.md)                           | Cooperative, propagation |
-| [Rack request deadline](https://github.com/drexed/timex/blob/main/examples/rack_request_deadline.md)                         | RackMiddleware           |
-| [gRPC deadline propagation](https://github.com/drexed/timex/blob/main/examples/grpc_deadline_propagation.md)                 | Propagation              |
-| [CLI long-running command](https://github.com/drexed/timex/blob/main/examples/cli_long_running_command.md)                   | TwoPhase, Subprocess     |
-| [Untrusted user code](https://github.com/drexed/timex/blob/main/examples/untrusted_user_code.md)                             | Subprocess               |
-| [Hedged RPC call](https://github.com/drexed/timex/blob/main/examples/hedged_rpc_call.md)                                     | Hedged                   |
-| [Two-phase graceful shutdown](https://github.com/drexed/timex/blob/main/examples/two_phase_graceful_shutdown.md)             | TwoPhase                 |
-| [Adaptive timeout from history](https://github.com/drexed/timex/blob/main/examples/adaptive_timeout_from_history.md)         | Adaptive                 |
-| [Lease-based distributed job](https://github.com/drexed/timex/blob/main/examples/lease_distributed_job.md)                   | Lease (placeholder)      |
-| [OpenTelemetry spans](https://github.com/drexed/timex/blob/main/examples/opentelemetry_spans.md)                             | Telemetry                |
-| [ActiveSupport instrumentation](https://github.com/drexed/timex/blob/main/examples/active_support_instrumentation.md)        | Telemetry                |
-| [Migrating a legacy `Timeout.timeout`](https://github.com/drexed/timex/blob/main/examples/migrating_legacy_timeout_block.md) | Cooperative, TwoPhase    |
+| Recipe                                                                                                                       | Strategies / Composers                         |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| [LLM calls with RubyLLM + TIMEx](https://github.com/drexed/timex/blob/main/examples/ai_llm_api_deadline.md)                  | Faraday `request_timeout`, propagation, Result |
+| [Net::HTTP request with deadline](https://github.com/drexed/timex/blob/main/examples/net_http_request.md)                    | IO, propagation                                |
+| [PG query with deadline](https://github.com/drexed/timex/blob/main/examples/pg_query_with_deadline.md)                       | Closeable, IO                                  |
+| [Redis with deadline](https://github.com/drexed/timex/blob/main/examples/redis_with_deadline.md)                             | IO                                             |
+| [Faraday middleware](https://github.com/drexed/timex/blob/main/examples/faraday_middleware.md)                               | IO, propagation                                |
+| [Sidekiq job deadline](https://github.com/drexed/timex/blob/main/examples/sidekiq_job_deadline.md)                           | Cooperative, propagation                       |
+| [Rack request deadline](https://github.com/drexed/timex/blob/main/examples/rack_request_deadline.md)                         | RackMiddleware                                 |
+| [gRPC deadline propagation](https://github.com/drexed/timex/blob/main/examples/grpc_deadline_propagation.md)                 | Propagation                                    |
+| [CLI long-running command](https://github.com/drexed/timex/blob/main/examples/cli_long_running_command.md)                   | TwoPhase, Subprocess                           |
+| [Untrusted user code](https://github.com/drexed/timex/blob/main/examples/untrusted_user_code.md)                             | Subprocess                                     |
+| [Hedged RPC call](https://github.com/drexed/timex/blob/main/examples/hedged_rpc_call.md)                                     | Hedged                                         |
+| [Two-phase graceful shutdown](https://github.com/drexed/timex/blob/main/examples/two_phase_graceful_shutdown.md)             | TwoPhase                                       |
+| [Adaptive timeout from history](https://github.com/drexed/timex/blob/main/examples/adaptive_timeout_from_history.md)         | Adaptive                                       |
+| [Lease-based distributed job](https://github.com/drexed/timex/blob/main/examples/lease_distributed_job.md)                   | Lease (placeholder)                            |
+| [OpenTelemetry spans](https://github.com/drexed/timex/blob/main/examples/opentelemetry_spans.md)                             | Telemetry                                      |
+| [ActiveSupport instrumentation](https://github.com/drexed/timex/blob/main/examples/active_support_instrumentation.md)        | Telemetry                                      |
+| [Migrating a legacy `Timeout.timeout`](https://github.com/drexed/timex/blob/main/examples/migrating_legacy_timeout_block.md) | Cooperative, TwoPhase                          |

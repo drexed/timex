@@ -554,6 +554,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#real-world-rubyllm-calls-that-hang" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-world: RubyLLM calls that “hang”
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-the-block-cannot-call-check" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1889,6 +1900,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#real-world-rubyllm-calls-that-hang" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-world: RubyLLM calls that “hang”
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-the-block-cannot-call-check" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2010,6 +2032,9 @@ TIMEx is the “let’s be explicit instead” version.</p>
 <li>You inherited code that never calls <code>check!</code> and you cannot rewrite it today.</li>
 <li>You want nested calls to share one budget instead of starting ten unrelated
   timers.</li>
+<li>A RubyLLM (Faraday) call uses a large default <strong><code>request_timeout</code></strong>, so a
+  wedged provider can still block a worker for minutes unless you cap it from a
+  <strong><code>Deadline</code></strong>.</li>
 </ul>
 <p><strong>What you get on day one:</strong></p>
 <ul>
@@ -2073,6 +2098,32 @@ want the whole job under five seconds and each row to notice the clock:</p>
 </span></code></pre></div>
 <p>Same pattern fits cron scripts, Rake tasks, and Puma request bodies—anywhere
 you own the loop and can afford a <code>check!</code> per iteration.</p>
+<h2 id="real-world-rubyllm-calls-that-hang">Real-world: RubyLLM calls that “hang”<a class="headerlink" href="#real-world-rubyllm-calls-that-hang" title="Permanent link">&para;</a></h2>
+<p>Apps using <a href="https://rubyllm.com/">RubyLLM</a> talk to providers through <strong>Faraday</strong>.
+RubyLLM sets <strong><code>request_timeout</code></strong> on that client (often <strong>300</strong> seconds by
+default), so work is not unbounded forever—but a slow or wedged completion can
+still block a worker for minutes. <strong><code>RubyLLM.context</code></strong> yields a <strong>dup</strong> of the
+global config: set <strong><code>request_timeout</code></strong> from <strong><code>deadline.remaining</code></strong>, then
+wrap the call in <strong><code>TIMEx.deadline</code></strong> so Ruby-side work shares the same cap.</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;timex&quot;</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;ruby_llm&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># RubyLLM.configure { |c| c.openai_api_key = ENV.fetch(&quot;OPENAI_API_KEY&quot;) } # once at boot</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="no">TIMEx</span><span class="o">.</span><span class="n">deadline</span><span class="p">(</span><span class="mi">45</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">deadline</span><span class="o">|</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">raise</span><span class="w"> </span><span class="n">deadline</span><span class="o">.</span><span class="n">expired_error</span><span class="p">(</span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:io</span><span class="p">,</span><span class="w"> </span><span class="ss">message</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm: no budget left&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">deadline</span><span class="o">.</span><span class="n">remaining</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="n">ctx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">RubyLLM</span><span class="o">.</span><span class="n">context</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">cfg</span><span class="o">|</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="n">cfg</span><span class="o">.</span><span class="n">request_timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="n">deadline</span><span class="o">.</span><span class="n">remaining</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="o">.</span><span class="mo">01</span><span class="o">].</span><span class="n">max</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="n">ctx</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="ss">model</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;One sentence about TIMEx deadlines.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">end</span>
+</span></code></pre></div>
+<p>Forward remaining time on your own HTTP hops with <strong><code>with_headers</code></strong> and
+<strong><code>TIMEx::Propagation::HttpHeader</code></strong>; streaming, retries, <strong><code>on_timeout: :result</code></strong>, and
+plain <strong><code>Net::HTTP</code></strong> are covered in the recipe
+<a href="https://github.com/drexed/timex/blob/main/examples/ai_llm_api_deadline.md">LLM calls with RubyLLM + TIMEx</a>.</p>
 <h2 id="when-the-block-cannot-call-check">When the block cannot call <code>check!</code><a class="headerlink" href="#when-the-block-cannot-call-check" title="Permanent link">&para;</a></h2>
 <p>Sometimes you do not control the loop—legacy gem, tight C extension, user
 plugin. You still have options; they get stronger as you go down the list:</p>
@@ -2080,23 +2131,23 @@ plugin. You still have options; they get stronger as you go down the list:</p>
 <li><strong>Auto-check</strong> — TIMEx uses TracePoint to poll the deadline for you (opt-in,
    not free lunch):</li>
 </ol>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">TIMEx</span><span class="o">.</span><span class="n">deadline</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_check</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">legacy_loop</span><span class="w"> </span><span class="p">}</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">TIMEx</span><span class="o">.</span><span class="n">deadline</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_check</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">legacy_loop</span><span class="w"> </span><span class="p">}</span>
 </span></code></pre></div>
 <p>Details: <a href="../auto_check/">Auto-check</a>.</p>
 <ol>
 <li><strong>TwoPhase</strong> — cooperative first, then a hard backstop after a grace window
    (the block may run <strong>twice</strong> on escalation, so the work must be safe to repeat):</li>
 </ol>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">TIMEx</span><span class="o">::</span><span class="no">Composers</span><span class="o">::</span><span class="no">TwoPhase</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="ss">soft</span><span class="p">:</span><span class="w"> </span><span class="ss">:cooperative</span><span class="p">,</span><span class="w"> </span><span class="ss">hard</span><span class="p">:</span><span class="w"> </span><span class="ss">:unsafe</span><span class="p">,</span><span class="w"> </span><span class="ss">grace</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="ss">hard_deadline</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="ss">idempotent</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">)</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">deadline</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">legacy_loop</span><span class="w"> </span><span class="p">}</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="no">TIMEx</span><span class="o">::</span><span class="no">Composers</span><span class="o">::</span><span class="no">TwoPhase</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="ss">soft</span><span class="p">:</span><span class="w"> </span><span class="ss">:cooperative</span><span class="p">,</span><span class="w"> </span><span class="ss">hard</span><span class="p">:</span><span class="w"> </span><span class="ss">:unsafe</span><span class="p">,</span><span class="w"> </span><span class="ss">grace</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="ss">hard_deadline</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="ss">idempotent</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">)</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">deadline</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">legacy_loop</span><span class="w"> </span><span class="p">}</span>
 </span></code></pre></div>
 <p>Details: <a href="../composers/two_phase/">TwoPhase</a>.</p>
 <ol>
 <li><strong>Subprocess</strong> — run the risky bit in a child process you can terminate:</li>
 </ol>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="no">TIMEx</span><span class="o">.</span><span class="n">deadline</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:subprocess</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">c_extension_call</span><span class="w"> </span><span class="p">}</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="no">TIMEx</span><span class="o">.</span><span class="n">deadline</span><span class="p">(</span><span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:subprocess</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">c_extension_call</span><span class="w"> </span><span class="p">}</span>
 </span></code></pre></div>
 <p>Details: <a href="../strategies/subprocess/">Subprocess</a>.</p>
 <h2 id="pick-a-strategy-cheat-sheet">Pick a strategy (cheat sheet)<a class="headerlink" href="#pick-a-strategy-cheat-sheet" title="Permanent link">&para;</a></h2>

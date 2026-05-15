@@ -15,6 +15,7 @@ If you have ever wrapped work in `Timeout.timeout` and crossed your fingers, TIM
 - You need a timeout around a loop, but you do not want random exceptions ripping through mutexes.
 - You inherited code that never calls `check!` and you cannot rewrite it today.
 - You want nested calls to share one budget instead of starting ten unrelated timers.
+- A RubyLLM (Faraday) call uses a large default **`request_timeout`**, so a wedged provider can still block a worker for minutes unless you cap it from a **`Deadline`**.
 
 **What you get on day one:**
 
@@ -86,6 +87,29 @@ end
 ```
 
 Same pattern fits cron scripts, Rake tasks, and Puma request bodies—anywhere you own the loop and can afford a `check!` per iteration.
+
+## Real-world: RubyLLM calls that “hang”
+
+Apps using [RubyLLM](https://rubyllm.com/) talk to providers through **Faraday**. RubyLLM sets **`request_timeout`** on that client (often **300** seconds by default), so work is not unbounded forever—but a slow or wedged completion can still block a worker for minutes. **`RubyLLM.context`** yields a **dup** of the global config: set **`request_timeout`** from **`deadline.remaining`**, then wrap the call in **`TIMEx.deadline`** so Ruby-side work shares the same cap.
+
+```ruby
+require "timex"
+require "ruby_llm"
+
+# RubyLLM.configure { |c| c.openai_api_key = ENV.fetch("OPENAI_API_KEY") } # once at boot
+
+TIMEx.deadline(45.0) do |deadline|
+  raise deadline.expired_error(strategy: :io, message: "llm: no budget left") if deadline.remaining <= 0
+
+  ctx = RubyLLM.context do |cfg|
+    cfg.request_timeout = [deadline.remaining, 0.01].max
+  end
+
+  ctx.chat(model: "gpt-4o-mini").ask("One sentence about TIMEx deadlines.").content
+end
+```
+
+Forward remaining time on your own HTTP hops with **`with_headers`** and **`TIMEx::Propagation::HttpHeader`**; streaming, retries, **`on_timeout: :result`**, and plain **`Net::HTTP`** are covered in the recipe [LLM calls with RubyLLM + TIMEx](https://github.com/drexed/timex/blob/main/examples/ai_llm_api_deadline.md).
 
 ## When the block cannot call `check!`
 
