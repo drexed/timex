@@ -64,7 +64,7 @@
   <img src="./src/timex-dark-logo.png#gh-dark-mode-only" width="200" alt="TIMEx Dark Logo">
 <pre class="code ruby"><code class="ruby">---
 
-Build business logic that’s powerful, predictable, and maintainable.
+Deadlines, budgets, and cancellation you can reason about in production.
 
 [Home](https://drexed.github.io/timex) ·
 [Documentation](https://drexed.github.io/timex/getting_started) ·
@@ -81,40 +81,70 @@ Build business logic that’s powerful, predictable, and maintainable.
   <img alt="License" src="https://img.shields.io/badge/license-LGPL%20v3-blue.svg">
 </div>
 <h1 id="TIMEx">TIMEx</h1>
-<p>Say goodbye to messy service objects. TIMEx helps you design business logic with clarity and consistency—build faster, debug easier, and ship with confidence.</p>
+<p>TIMEx is a <strong>deadline engine</strong> for Ruby: one facade runs your code under a <code>Deadline</code>, picks an execution strategy (cooperative checks, thread wakeup, IO deadlines, subprocesses, and more), and routes expiry through consistent <code>on_timeout</code> semantics—without pulling in a framework.</p>
 <blockquote>
 <p>[!NOTE]
 <a href="https://drexed.github.io/timex/getting_started/">Documentation</a> reflects the latest code on <code>main</code>. For version-specific documentation, refer to the <code>docs/</code> directory within that version's tag.</p>
 </blockquote>
 <h2 id="What_you_get">What you get</h2>
 <ul>
-<li><strong>Standardized task contract</strong> — typed inputs, declared outputs, explicit halts</li>
-<li><strong>Type system</strong> — 13 coercers, 7 validators, all pluggable</li>
-<li><strong>Built-in flow control</strong> — <code>skip!</code> / <code>fail!</code> / <code>throw!</code> with structured metadata</li>
-<li><strong>Retries and faults</strong> — declarative <code>retry_on</code> with configurable jitter</li>
-<li><strong>Middleware and callbacks</strong> — wrap the lifecycle without touching <code>work</code></li>
-<li><strong>Observability</strong> — structured logs and telemetry, no extra instrumentation</li>
-<li><strong>Composable workflows</strong> — chain tasks into larger processes</li>
+<li><strong><code>TIMEx.deadline</code> / <code>TIMEx.call</code></strong> — single entrypoint with <code>strategy:</code>, <code>on_timeout:</code>, <code>auto_check:</code>, and strategy-specific options</li>
+<li><strong><code>Deadline</code></strong> — monotonic + wall alignment, narrowing (<code>#min</code>), skew-aware header encoding (<code>X-TIMEx-Deadline</code>)</li>
+<li><strong>Strategies</strong> — <code>:cooperative</code>, <code>:unsafe</code>, <code>:io</code>, <code>:wakeup</code>, <code>:subprocess</code>, <code>:closeable</code>, <code>:ractor</code> (when <code>Ractor</code> is defined), each registered on <code>TIMEx::Registry</code></li>
+<li><strong>Composers</strong> — <code>TwoPhase</code>, <code>Hedged</code>, <code>Adaptive</code> for multi-attempt and staged execution</li>
+<li><strong><code>on_timeout</code></strong> — <code>:raise</code> (default), <code>:raise_standard</code>, <code>:return_nil</code>, <code>:result</code>, or a custom <code>Proc</code> with shared dispatch in <code>TimeoutHandling</code></li>
+<li><strong><code>Result</code></strong> — discriminated <code>:ok</code> / <code>:timeout</code> / <code>:error</code> outcomes when you opt out of raising</li>
+<li><strong>Propagation</strong> — <code>Deadline#to_header</code> / <code>Deadline.from_header</code> plus optional Rack middleware for cross-service budgets</li>
+<li><strong>Telemetry &amp; clocks</strong> — pluggable <code>Telemetry.adapter</code>, injectable monotonic/wall <code>Clock</code>, and <code>TIMEx::Test::VirtualClock</code> for tests</li>
+<li><strong>Rails (opt-in)</strong> — install generator adds initializer hooks without loading Rails from the core require</li>
 </ul>
-<p>See the <a href="https://drexed.github.io/timex/comparison/">feature comparison</a> for how TIMEx stacks up against other service-object gems.</p>
+<p>See the <a href="https://drexed.github.io/timex/comparison/">feature comparison</a> for how TIMEx compares to <code>Timeout.timeout</code> and other patterns.</p>
 <h2 id="Requirements">Requirements</h2>
 <ul>
 <li>Ruby: MRI 3.3+ or a compatible JRuby/TruffleRuby release</li>
+<li>Runtime dependencies: none beyond the standard library (no ActiveSupport required)</li>
 </ul>
+<p>Rails middleware and generators load only when you opt in after <code>bundle install</code>.</p>
 <h2 id="Installation">Installation</h2>
 <pre class="code sh"><code class="sh">gem install timex
 # - or -
 bundle add timex
 </code></pre>
-<h2 id="Quick_Example">Quick Example</h2>
-<p>TODO: Add docs</p>
+<h2 id="Quick_example">Quick example</h2>
+<h3 id="1__Budget">1. Budget</h3>
+<p>Pass seconds, a <code>Deadline</code>, or <code>nil</code> for an infinite budget. The block receives a frozen <code>Deadline</code> you can thread through helpers.</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_in'><span class='object_link'><a href="TIMEx/Deadline.html#in-class_method" title="TIMEx::Deadline.in (method)">in</a></span></span><span class='lparen'>(</span><span class='float'>2.5</span><span class='rparen'>)</span>
+<span class='const'><span class='object_link'><a href="TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='period'>.</span><span class='id identifier rubyid_deadline'>deadline</span><span class='lparen'>(</span><span class='id identifier rubyid_deadline'>deadline</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_d'>d</span><span class='op'>|</span> <span class='id identifier rubyid_process!'>process!</span><span class='lparen'>(</span><span class='id identifier rubyid_d'>d</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+</code></pre>
+<h3 id="2__Run">2. Run</h3>
+<p>The default <code>:cooperative</code> strategy runs your block and performs a final <code>check!</code> so CPU-bound work still observes expiry at cooperative points.</p>
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='period'>.</span><span class='id identifier rubyid_deadline'>deadline</span><span class='lparen'>(</span><span class='float'>1.0</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_deadline'>deadline</span><span class='op'>|</span>
+  <span class='id identifier rubyid_rows'>rows</span> <span class='op'>=</span> <span class='id identifier rubyid_fetch_rows'>fetch_rows</span>
+  <span class='id identifier rubyid_deadline'>deadline</span><span class='period'>.</span><span class='id identifier rubyid_check!'>check!</span>
+  <span class='id identifier rubyid_summarize'>summarize</span><span class='lparen'>(</span><span class='id identifier rubyid_rows'>rows</span><span class='rparen'>)</span>
+<span class='kw'>end</span>
+</code></pre>
+<h3 id="3__On_expiry">3. On expiry</h3>
+<p>Override per call or via <code>TIMEx.configure</code>. Use <code>:result</code> when you want a <code>TIMEx::Result</code> instead of an exception.</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_outcome'>outcome</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='period'>.</span><span class='id identifier rubyid_deadline'>deadline</span><span class='lparen'>(</span><span class='float'>0.01</span><span class='comma'>,</span> <span class='label'>on_timeout:</span> <span class='symbol'>:result</span><span class='comma'>,</span> <span class='label'>strategy:</span> <span class='symbol'>:unsafe</span><span class='rparen'>)</span> <span class='kw'>do</span>
+  <span class='id identifier rubyid_sleep'>sleep</span> <span class='int'>5</span> <span class='comment'># interrupted when the budget is exhausted
+</span><span class='kw'>end</span>
+
+<span class='id identifier rubyid_outcome'>outcome</span><span class='period'>.</span><span class='id identifier rubyid_timeout?'>timeout?</span> <span class='comment'># =&gt; true
+</span></code></pre>
+<h3 id="4__Propagate">4. Propagate</h3>
+<p>Serialize remaining budget into an outbound request so downstream services share the same cap.</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_req'>req</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>X-TIMEx-Deadline</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="TIMEx.html" title="TIMEx (module)">TIMEx</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="TIMEx/Deadline.html" title="TIMEx::Deadline (class)">Deadline</a></span></span><span class='period'>.</span><span class='id identifier rubyid_in'><span class='object_link'><a href="TIMEx/Deadline.html#in-class_method" title="TIMEx::Deadline.in (method)">in</a></span></span><span class='lparen'>(</span><span class='float'>3.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_header'><span class='object_link'><a href="TIMEx/Deadline.html#to_header-instance_method" title="TIMEx::Deadline#to_header (method)">to_header</a></span></span>
+<span class='comment'># or use TIMEx::Propagation::RackMiddleware on the server (see docs)
+</span></code></pre>
+<p>Ready to go deeper? Start with <a href="https://drexed.github.io/timex/getting_started/">Getting Started</a> and <a href="https://drexed.github.io/timex/migrating_from_stdlib_timeout/">Migrating from stdlib <code>Timeout</code></a>.</p>
 <h2 id="Contributing">Contributing</h2>
 <p>Bug reports and pull requests are welcome at <a href="https://github.com/drexed/timex">https://github.com/drexed/timex</a>. We're committed to fostering a welcoming, collaborative community. Please follow our <a href="CODE_OF_CONDUCT.md">code of conduct</a>.</p>
 <h2 id="License">License</h2>
 <p>The gem is available as open source under the terms of the <a href="https://www.gnu.org/licenses/lgpl-3.0.html">LGPLv3 License</a>.</p></div></div>
 
       <div id="footer">
-  Generated on Thu May 14 21:52:51 2026 by
+  Generated on Fri May 15 00:15:05 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.43 (ruby-3.4.9).
 </div>
