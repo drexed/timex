@@ -4,7 +4,7 @@
 
   ---
 
-  Build business logic that’s powerful, predictable, and maintainable.
+  Deadlines, budgets, and cancellation you can reason about in production.
 
   [Home](https://drexed.github.io/timex) ·
   [Documentation](https://drexed.github.io/timex/getting_started) ·
@@ -23,26 +23,31 @@
 
 # TIMEx
 
-Say goodbye to messy service objects. TIMEx helps you design business logic with clarity and consistency—build faster, debug easier, and ship with confidence.
+TIMEx is a **deadline engine** for Ruby: one facade runs your code under a `Deadline`, picks an execution strategy (cooperative checks, thread wakeup, IO deadlines, subprocesses, and more), and routes expiry through consistent `on_timeout` semantics—without pulling in a framework.
 
 > [!NOTE]
 > [Documentation](https://drexed.github.io/timex/getting_started/) reflects the latest code on `main`. For version-specific documentation, refer to the `docs/` directory within that version's tag.
 
 ## What you get
 
-- **Standardized task contract** — typed inputs, declared outputs, explicit halts
-- **Type system** — 13 coercers, 7 validators, all pluggable
-- **Built-in flow control** — `skip!` / `fail!` / `throw!` with structured metadata
-- **Retries and faults** — declarative `retry_on` with configurable jitter
-- **Middleware and callbacks** — wrap the lifecycle without touching `work`
-- **Observability** — structured logs and telemetry, no extra instrumentation
-- **Composable workflows** — chain tasks into larger processes
+- **`TIMEx.deadline` / `TIMEx.call`** — single entrypoint with `strategy:`, `on_timeout:`, `auto_check:`, and strategy-specific options
+- **`Deadline`** — monotonic + wall alignment, narrowing (`#min`), skew-aware header encoding (`X-TIMEx-Deadline`)
+- **Strategies** — `:cooperative`, `:unsafe`, `:io`, `:wakeup`, `:subprocess`, `:closeable`, `:ractor` (when `Ractor` is defined), each registered on `TIMEx::Registry`
+- **Composers** — `TwoPhase`, `Hedged`, `Adaptive` for multi-attempt and staged execution
+- **`on_timeout`** — `:raise` (default), `:raise_standard`, `:return_nil`, `:result`, or a custom `Proc` with shared dispatch in `TimeoutHandling`
+- **`Result`** — discriminated `:ok` / `:timeout` / `:error` outcomes when you opt out of raising
+- **Propagation** — `Deadline#to_header` / `Deadline.from_header` plus optional Rack middleware for cross-service budgets
+- **Telemetry & clocks** — pluggable `Telemetry.adapter`, injectable monotonic/wall `Clock`, and `TIMEx::Test::VirtualClock` for tests
+- **Rails (opt-in)** — install generator adds initializer hooks without loading Rails from the core require
 
-See the [feature comparison](https://drexed.github.io/timex/comparison/) for how TIMEx stacks up against other service-object gems.
+See the [feature comparison](https://drexed.github.io/timex/comparison/) for how TIMEx compares to `Timeout.timeout` and other patterns.
 
 ## Requirements
 
 - Ruby: MRI 3.3+ or a compatible JRuby/TruffleRuby release
+- Runtime dependencies: none beyond the standard library (no ActiveSupport required)
+
+Rails middleware and generators load only when you opt in after `bundle install`.
 
 ## Installation
 
@@ -52,9 +57,51 @@ gem install timex
 bundle add timex
 ```
 
-## Quick Example
+## Quick example
 
-TODO: Add docs
+### 1. Budget
+
+Pass seconds, a `Deadline`, or `nil` for an infinite budget. The block receives a frozen `Deadline` you can thread through helpers.
+
+```ruby
+deadline = TIMEx::Deadline.in(2.5)
+TIMEx.deadline(deadline) { |d| process!(d) }
+```
+
+### 2. Run
+
+The default `:cooperative` strategy runs your block and performs a final `check!` so CPU-bound work still observes expiry at cooperative points.
+
+```ruby
+TIMEx.deadline(1.0) do |deadline|
+  rows = fetch_rows
+  deadline.check!
+  summarize(rows)
+end
+```
+
+### 3. On expiry
+
+Override per call or via `TIMEx.configure`. Use `:result` when you want a `TIMEx::Result` instead of an exception.
+
+```ruby
+outcome = TIMEx.deadline(0.01, on_timeout: :result, strategy: :unsafe) do
+  sleep 5 # interrupted when the budget is exhausted
+end
+
+outcome.timeout? # => true
+```
+
+### 4. Propagate
+
+Serialize remaining budget into an outbound request so downstream services share the same cap.
+
+```ruby
+req["X-TIMEx-Deadline"] = TIMEx::Deadline.in(3.0).to_header
+# or use TIMEx::Propagation::RackMiddleware on the server (see docs)
+```
+
+Ready to go deeper? Start with [Getting Started](https://drexed.github.io/timex/getting_started/) and [Migrating from stdlib `Timeout`](https://drexed.github.io/timex/migrating_from_stdlib_timeout/).
 
 ## Contributing
 

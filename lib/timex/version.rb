@@ -2,7 +2,7 @@
 
 module TIMEx
 
-  # Semantic version of the TIMEx gem (string).
+  # Gem version. Bumped on release; mirrored in the gemspec.
   VERSION = "0.1.0"
 
 end
